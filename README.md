@@ -13,4 +13,3 @@ Next steps:
 - Run additional integration checks against a real database if desired.
 - Continue feature work or prepare a production build of the frontend.
 
-If you want, I can push this commit and open a PR.
