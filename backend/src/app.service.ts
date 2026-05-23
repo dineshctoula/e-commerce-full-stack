@@ -17,11 +17,12 @@ export class AppService {
         database: 'connected',
         timestamp: new Date().toISOString(),
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
       return {
         status: 'error',
         database: 'disconnected',
-        error: error.message,
+        error: message,
         timestamp: new Date().toISOString(),
       };
     }
