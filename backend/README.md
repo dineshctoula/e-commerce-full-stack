@@ -93,6 +93,57 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 - Website - [https://nestjs.com](https://nestjs.com/)
 - Twitter - [@nestframework](https://twitter.com/nestframework)
 
+## Run & Deploy (this repo)
+
+### Local development
+
+1. From the repository root, install dependencies for both apps:
+
+```bash
+npm ci
+cd frontend && npm ci && cd -
+```
+
+2. Generate Prisma client (only needed once or after schema changes):
+
+```bash
+npx prisma generate
+```
+
+3. Start backend and frontend in separate terminals:
+
+```bash
+# backend
+cd backend && npm run start:dev
+
+# frontend
+cd frontend && npm run dev
+```
+
+4. Smoke test the backend root route:
+
+```bash
+curl http://localhost:3000/
+```
+
+### Production build
+
+```bash
+# build frontend
+cd frontend && npm run build
+
+# install backend deps and build
+cd ../backend && npm ci && npm run build
+
+# run backend
+npm run start:prod
+```
+
+### Notes
+
+- Set `DATABASE_URL` in your environment to point at your database for production. The project contains a `dev.db` sqlite file for local testing.
+- For deployment, you can serve the frontend static files from any static host (Netlify, Vercel, S3) and run the Nest backend on a Node-compatible server (Docker, VPS, or a platform like Heroku).
+
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
