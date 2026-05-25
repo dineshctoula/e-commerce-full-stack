@@ -10,6 +10,7 @@ export class AppService {
   }
 
   async getHealth() {
+    // “Is my backend + database working?”
     try {
       await this.prisma.$queryRaw`SELECT 1`;
       return {
