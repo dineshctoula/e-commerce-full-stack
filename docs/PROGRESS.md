@@ -85,3 +85,55 @@ We executed a complete curl testing suite (`scratch/test-auth.sh`) which verifie
 5. Token refresh rotates cookies.
 6. Logout successfully nullifies database token references and clears cookies.
 7. Subsequent calls to `/auth/me` correctly return `401 Unauthorized`.
+
+---
+
+## Day 3 — Authentication & User Management (Frontend)
+Implemented a clean, professional, and secure frontend authentication layer using React, Zustand state management, and custom CSS styling.
+
+### Key Architecture Decisions
+1. **Zustand Authentication Store**:
+   - Centralized authentication state management (user, isAuthenticated, loading, error).
+   - Promotes highly optimized state select triggers to avoid unnecessary re-renders.
+2. **HttpOnly Cookie Authorization**:
+   - Instructed all outgoing REST API checks with `credentials: 'include'`.
+   - Allows automatic transport of cookies to/from the NestJS server port, retaining protection against XSS.
+3. **Route Guards (Higher-Order Security)**:
+   - Built wrapper guards to intercept restricted path routing.
+   - Restricts sensitive pages (like Profile) to logged-in sessions, redirecting guests to the login page.
+4. **Fluid Dark Theme Dashboard**:
+   - Maintained custom glassmorphism effects and layout classes.
+   - Introduced a persistent theme switcher (Dark/Light mode) saved in local storage.
+
+### Detailed Implementation Steps
+
+#### 1. Global State Management (`store/auth.ts`)
+* Configured the Zustand `useAuthStore` to track session user data.
+* Implemented async handlers:
+  * `checkAuth()`: Restores sessions automatically on load using GET `/auth/me`.
+  * `login()`: Authenticates details against POST `/auth/login`.
+  * `register()`: Submits details against POST `/auth/register`.
+  * `logout()`: Clears credentials via POST `/auth/logout` and resets local state.
+
+#### 2. Route Guard Protection (`components/ProtectedRoute.tsx`)
+* Implemented `ProtectedRoute` and `AdminRoute` wrappers using React Router DOM.
+* Added a graceful loading screen component to prevent page flickering while credentials validation is running.
+
+#### 3. Responsive Navigation Bar (`components/Navbar.tsx`)
+* Custom flexbox header linking to pages.
+* Renders conditional routes: Guest options vs. Profile links and Sign Out buttons.
+* Contains a theme switch toggle updating document level attributes (`data-theme`).
+
+#### 4. Authentication Pages (`pages/Login.tsx` & `pages/Register.tsx`)
+* Forms featuring instant validation (password min length checks, confirmation matches).
+* Rich glassmorphic card designs featuring CSS transition animations.
+* Renders backend server errors within a dedicated error alert component.
+
+#### 5. Profile Page (`pages/Profile.tsx`)
+* Displays account details (Name, Email, Role, ID) in a clean dashboard dashboard.
+* Restricts access to authenticated accounts using the `ProtectedRoute` layer.
+
+#### 6. Routing & Initialization (`App.tsx`)
+* Wrapped pages inside `BrowserRouter`.
+* Bound the initial `checkAuth()` hook on startup to confirm user authentication state.
+

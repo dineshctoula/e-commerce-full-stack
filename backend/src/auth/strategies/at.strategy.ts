@@ -27,3 +27,5 @@ export class AtStrategy extends PassportStrategy(Strategy, 'jwt') {
     return payload;
   }
 }
+
+// yesle access token banauxa
