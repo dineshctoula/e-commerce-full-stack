@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable, BadRequestException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  BadRequestException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
@@ -37,8 +41,12 @@ export class AuthService {
     });
 
     // 4. Generate Access and Refresh tokens
-    const tokens = await this.signTokens(newUser.id, newUser.email, newUser.role);
-    
+    const tokens = await this.signTokens(
+      newUser.id,
+      newUser.email,
+      newUser.role,
+    );
+
     // 5. Store the hashed refresh token in the database for future validation
     await this.updateRtHash(newUser.id, tokens.refresh_token);
 
@@ -73,7 +81,7 @@ export class AuthService {
 
     // 3. If correct, generate new tokens
     const tokens = await this.signTokens(user.id, user.email, user.role);
-    
+
     // 4. Store the new hashed refresh token in the database
     await this.updateRtHash(user.id, tokens.refresh_token);
 
@@ -125,7 +133,7 @@ export class AuthService {
 
     // 4. Generate a fresh set of access and refresh tokens
     const tokens = await this.signTokens(user.id, user.email, user.role);
-    
+
     // 5. Update database with the new refresh token hash (token rotation security)
     await this.updateRtHash(user.id, tokens.refresh_token);
 
@@ -147,12 +155,14 @@ export class AuthService {
     const [at, rt] = await Promise.all([
       // Access Token (short expiration)
       this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_ACCESS_SECRET || 'super-secret-access-key-12345!',
+        secret:
+          process.env.JWT_ACCESS_SECRET || 'super-secret-access-key-12345!',
         expiresIn: '15m',
       }),
       // Refresh Token (long expiration)
       this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_REFRESH_SECRET || 'super-secret-refresh-key-67890!',
+        secret:
+          process.env.JWT_REFRESH_SECRET || 'super-secret-refresh-key-67890!',
         expiresIn: '7d',
       }),
     ]);

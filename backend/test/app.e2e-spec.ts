@@ -13,7 +13,11 @@ describe('AppController (e2e)', () => {
       imports: [AppModule],
     })
       .overrideProvider(PrismaService)
-      .useValue({ $connect: jest.fn(), $disconnect: jest.fn(), $queryRaw: jest.fn().mockResolvedValue(1) })
+      .useValue({
+        $connect: jest.fn(),
+        $disconnect: jest.fn(),
+        $queryRaw: jest.fn().mockResolvedValue(1),
+      })
       .compile();
 
     app = moduleFixture.createNestApplication();

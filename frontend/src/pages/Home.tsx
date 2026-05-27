@@ -31,9 +31,9 @@ export const Home: React.FC = () => {
   const roadmap: RoadmapItem[] = [
     { day: 1, title: 'Setup & Architecture', description: 'Monorepo project setup, SQLite with Prisma, and unit/e2e test setup.', status: 'completed' },
     { day: 2, title: 'Auth & User Management (Backend)', description: 'Passport JWT strategy, token rotation, and HttpOnly cookies.', status: 'completed' },
-    { day: 3, title: 'Auth & User Management (Frontend)', description: 'Zustand session state, login/register views, and route guards.', status: 'in-progress' },
-    { day: 4, title: 'Product Catalog API', description: 'Database schema design and CRUD controller endpoints.', status: 'locked' },
-    { day: 5, title: 'Product Catalog UI', description: 'Dynamic listing, filters, search, and detail view pages.', status: 'locked' },
+    { day: 3, title: 'Auth & User Management (Frontend)', description: 'Zustand session state, login/register views, and route guards.', status: 'completed' },
+    { day: 4, title: 'Product Catalog API', description: 'Database schema design and CRUD controller endpoints.', status: 'completed' },
+    { day: 5, title: 'Product Catalog UI', description: 'Dynamic listing, filters, search, and detail view pages.', status: 'in-progress' },
     { day: 6, title: 'Cart & Wishlist', description: 'Persistence sync layer, slider drawer, and price calculator.', status: 'locked' },
     { day: 7, title: 'Orders API', description: 'Stock verification, total calculations, and order creation.', status: 'locked' },
     { day: 8, title: 'Checkout Flow', description: 'Multi-step shipping, order summary, and history dashboard.', status: 'locked' },

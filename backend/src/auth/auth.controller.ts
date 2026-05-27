@@ -1,4 +1,14 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Res, UseGuards, ForbiddenException } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Res,
+  UseGuards,
+  ForbiddenException,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { GetCurrentUser } from './decorators/get-current-user.decorator';
@@ -96,7 +106,10 @@ export class AuthController {
   }
 
   // Helper method: writes JWT access and refresh tokens to HttpOnly, SameSite cookies.
-  private setCookies(res: Response, tokens: { access_token: string; refresh_token: string }) {
+  private setCookies(
+    res: Response,
+    tokens: { access_token: string; refresh_token: string },
+  ) {
     const isProduction = process.env.NODE_ENV === 'production';
 
     // Access Token Cookie (15-minute expiration)

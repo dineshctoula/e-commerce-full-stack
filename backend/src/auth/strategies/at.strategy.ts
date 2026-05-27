@@ -19,7 +19,8 @@ export class AtStrategy extends PassportStrategy(Strategy, 'jwt') {
         },
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
-      secretOrKey: process.env.JWT_ACCESS_SECRET || 'super-secret-access-key-12345!',
+      secretOrKey:
+        process.env.JWT_ACCESS_SECRET || 'super-secret-access-key-12345!',
     });
   }
 

@@ -13,7 +13,8 @@ export class RtStrategy extends PassportStrategy(Strategy, 'jwt-refreshtoken') {
         },
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
-      secretOrKey: process.env.JWT_REFRESH_SECRET || 'super-secret-refresh-key-67890!',
+      secretOrKey:
+        process.env.JWT_REFRESH_SECRET || 'super-secret-refresh-key-67890!',
       passReqToCallback: true,
     });
   }

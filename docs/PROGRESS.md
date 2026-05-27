@@ -137,3 +137,50 @@ Implemented a clean, professional, and secure frontend authentication layer usin
 * Wrapped pages inside `BrowserRouter`.
 * Bound the initial `checkAuth()` hook on startup to confirm user authentication state.
 
+---
+
+## Day 4 — Product Catalog API
+Implemented a robust product catalog REST API, configured database seeding, and verified the endpoints with high unit test coverage.
+
+### Key Architecture Decisions
+1. **Public Catalog, Protected Admin Actions**:
+   - Access to viewing the catalog (`GET /products` and `GET /products/:id`) is made public via the `@Public()` decorator to bypass global route checks.
+   - Access to modify the catalog (`POST`, `PATCH`, `DELETE`) is guarded globally and requires the user to have the `'ADMIN'` role, checked by `RolesGuard` and `@Roles('ADMIN')`.
+2. **Unified Filtering & Pagination**:
+   - The query interface integrates optional search, category filters, price ranges (minimum and maximum), and standard page/limit offset calculations.
+3. **Database Seeding via Driver Adapter**:
+   - Handled seeding using `better-sqlite3` adapter inside `prisma.config.ts` and `seed.ts` to ensure compatibility with SQLite.
+
+### Detailed Implementation Steps
+
+#### 1. Request Validation DTOs (`product/dto/`)
+* `CreateProductDto`: Defines and validates product catalog parameters (`title`, `description`, `price`, `image`, `category`, `stock`) using `class-validator` rules.
+* `UpdateProductDto`: Optional-mapped matching parameters for patch actions.
+
+#### 2. Product Service & Database Actions (`product/product.service.ts`)
+* Implemented paginated queries:
+  * Computes search matches inside title and description.
+  * Filters categories exactly.
+  * Bounds floats within min/max price range parameters.
+* Validates product existence prior to updates or removals, returning standard HTTP 404 responses if a request references an invalid key.
+
+#### 3. Seed Configuration (`prisma/seed.ts` & `prisma.config.ts`)
+* Wrote `seed.ts` inserting 8 initial high-quality product assets (accessories, electronics, clothing, and kitchen items).
+* Modified `prisma.config.ts` to register the new database seeding script.
+
+#### 4. Service Tests (`product/product.service.spec.ts`)
+* Added unit tests asserting creation, search filters, pagination offsets, missing product exceptions, modifications, and deletions.
+
+### Verification Run Output
+All tests compiled and ran cleanly:
+```bash
+PASS src/product/product.service.spec.ts
+PASS src/auth/auth.service.spec.ts
+PASS src/app.controller.spec.ts
+
+Test Suites: 3 passed, 3 total
+Tests:       9 passed, 9 total
+Snapshots:   0 total
+```
+
+
