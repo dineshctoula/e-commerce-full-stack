@@ -12,7 +12,7 @@ export const Catalog: React.FC = () => {
   const [categoryVal, setCategoryVal] = useState('');
   const [minPriceVal, setMinPriceVal] = useState('');
   const [maxPriceVal, setMaxPriceVal] = useState('');
-  
+
   // Available categories in our seed and backend
   const categories = ['All', 'Accessories', 'Electronics', 'Clothing', 'Home & Kitchen'];
 
@@ -70,7 +70,7 @@ export const Catalog: React.FC = () => {
 
       {/* Catalog Grid Structure (Filters Sidebar + Products List) */}
       <div className="catalog-layout">
-        
+
         {/* Filters Sidebar */}
         <aside className="filters-sidebar glass">
           <div className="filters-header">
@@ -145,17 +145,17 @@ export const Catalog: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-            <button 
-              type="button" 
-              className="btn btn-primary" 
+            <button
+              type="button"
+              className="btn btn-primary"
               style={{ flex: 1, padding: '8px 12px', fontSize: '13px' }}
               onClick={() => applyFilters(1)}
             >
               Apply Filters
             </button>
-            <button 
-              type="button" 
-              className="btn btn-secondary" 
+            <button
+              type="button"
+              className="btn btn-secondary"
               style={{ padding: '8px 12px', fontSize: '13px' }}
               onClick={handleClearFilters}
             >
@@ -166,7 +166,7 @@ export const Catalog: React.FC = () => {
 
         {/* Products Grid Area */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          
+
           {/* Loading status */}
           {loading ? (
             <div className="loading-container glass">
@@ -183,9 +183,9 @@ export const Catalog: React.FC = () => {
               <Info size={24} className="accent-color" />
               <h3>No products found</h3>
               <p>Try clearing filters or modifying your search keywords.</p>
-              <button 
-                type="button" 
-                className="btn btn-secondary" 
+              <button
+                type="button"
+                className="btn btn-secondary"
                 onClick={handleClearFilters}
                 style={{ marginTop: '16px' }}
               >
@@ -199,9 +199,9 @@ export const Catalog: React.FC = () => {
                 {products.map((product) => (
                   <div key={product.id} className="product-card glass">
                     <div className="product-image-container">
-                      <img 
-                        src={product.image || 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=600'} 
-                        alt={product.title} 
+                      <img
+                        src={product.image || 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=600'}
+                        alt={product.title}
                         className="product-image"
                         loading="lazy"
                       />
@@ -211,14 +211,14 @@ export const Catalog: React.FC = () => {
                     <div className="product-card-body">
                       <h3 className="product-card-title">{product.title}</h3>
                       <p className="product-card-desc">
-                        {product.description.length > 80 
-                          ? `${product.description.slice(0, 80)}...` 
+                        {product.description.length > 80
+                          ? `${product.description.slice(0, 80)}...`
                           : product.description}
                       </p>
 
                       <div className="product-card-footer">
                         <span className="product-card-price">${product.price.toFixed(2)}</span>
-                        
+
                         <button
                           type="button"
                           className="btn btn-primary btn-sm"
