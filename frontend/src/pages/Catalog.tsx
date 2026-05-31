@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useProductStore, ProductFilters } from '../store/products';
+import { useProductStore } from '../store/products';
+import type { ProductFilters } from '../store/products';
 import { Search, SlidersHorizontal, ChevronLeft, ChevronRight, Tag, Info } from 'lucide-react';
 
 export const Catalog: React.FC = () => {
