@@ -8,6 +8,9 @@ import { Register } from './pages/Register';
 import { Profile } from './pages/Profile';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
+import { Catalog } from './pages/Catalog';
+import { ProductDetail } from './pages/ProductDetail';
+
 function App() {
   const { checkAuth } = useAuthStore();
 
@@ -26,6 +29,10 @@ function App() {
         <Routes>
           {/* Public Home/Roadmap Page */}
           <Route path="/" element={<Home />} />
+
+          {/* Product Catalog & Details */}
+          <Route path="/shop" element={<Catalog />} />
+          <Route path="/products/:id" element={<ProductDetail />} />
 
           {/* Authentication Pages */}
           <Route path="/login" element={<Login />} />

@@ -136,6 +136,20 @@ a {
   gap: 20px;
 }
 
+.nav-link {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text-secondary);
+  transition: color var(--transition-fast);
+  margin-right: 8px;
+}
+
+.nav-link:hover {
+  color: var(--accent-color);
+}
+
+
 /* Theme Toggle Button */
 .icon-btn {
   background: transparent;

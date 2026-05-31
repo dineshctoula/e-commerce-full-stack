@@ -183,4 +183,46 @@ Tests:       9 passed, 9 total
 Snapshots:   0 total
 ```
 
+---
+
+## Day 5 — Product Catalog UI
+Implemented a complete, premium client-side product catalog, state management, search filters, and detail view pages using React, Zustand, Lucide Icons, and custom CSS styling.
+
+### Key Architecture Decisions
+1. **Zustand Product Store**:
+   - Centralized product catalog state (loading, error, list, detail views, pagination metadata).
+   - Dynamically constructs query parameters (`search`, `category`, `minPrice`, `maxPrice`, `page`, `limit`) and fetches results from backend endpoints.
+2. **Interactive Catalog Dashboard**:
+   - Implemented real-time sidebar filtering: categories chip selector, search keyword, and custom price range bounding.
+   - Smooth transitions and paginated grid layout to ensure responsive structure on mobile and desktop viewports.
+3. **Dedicated Product Detail Page**:
+   - Implemented direct URL routing (`/products/:id`) fetching single item specs.
+   - Cleans up active product state on component unmount to prevent visual layout flashing next time.
+
+### Detailed Implementation Steps
+
+#### 1. Zustand Products Store (`store/products.ts`)
+* Defined interfaces for `Product`, `ProductFilters`, and `ProductState`.
+* Handled API async actions:
+  - `fetchProducts(filters)`: Formulates search queries and queries `/products`.
+  - `fetchProductById(id)`: Queries `/products/:id` with fallback errors.
+  - `clearCurrentProduct()`: Resets the state.
+
+#### 2. Catalog Listing Dashboard (`pages/Catalog.tsx`)
+* Implemented filter inputs (search, category tags, min/max price sliders) updating queries.
+* Included interactive loading indicator spinner, empty results warnings, and next/prev page controllers.
+
+#### 3. Product Detail View (`pages/ProductDetail.tsx`)
+* Extracted routing params (`id`) on mount and triggered fetch routines.
+* Added stylized layout grid containing big-ratio product image, title headers, category badges, descriptions, and stock status indicators.
+
+#### 4. Navigation & Layout Routing (`App.tsx` & `Navbar.tsx`)
+* Registered `/shop` and `/products/:id` routes.
+* Appended a direct "Shop" link in the header navigation panel.
+* Added custom responsive CSS layouts in `index.css` for grid display cards, scaling images, badges, pagination, and stock trackers.
+
+### Verification Run Output
+* Successfully validated the React codebase using `npx tsc --noEmit`. No errors were found.
+
+
 

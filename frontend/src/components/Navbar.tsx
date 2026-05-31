@@ -37,6 +37,11 @@ export const Navbar: React.FC = () => {
 
         {/* Action Buttons & Links */}
         <div className="nav-actions">
+          {/* Shop Catalog Link */}
+          <Link to="/shop" className="nav-link">
+            Shop
+          </Link>
+
           {/* Light/Dark Theme Switcher */}
           <button 
             type="button" 
