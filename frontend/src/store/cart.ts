@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Product } from './products';
+import type { Product } from './products';
 
 // Interface representing an item inside the cart with selected quantity
 export interface CartItem {
