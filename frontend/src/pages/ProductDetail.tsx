@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProductStore } from '../store/products';
-import { ArrowLeft, ShoppingBag, Info } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Info, Heart, ShoppingCart } from 'lucide-react';
+import { useCartStore } from '../store/cart';
 
 export const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -9,6 +10,29 @@ export const ProductDetail: React.FC = () => {
 
   // Retrieve states and actions from the Zustand products store
   const { currentProduct, loading, error, fetchProductById, clearCurrentProduct } = useProductStore();
+  const { addToCart, wishlist, toggleWishlist } = useCartStore();
+
+  // Local state for quantity selector
+  const [quantity, setQuantity] = useState(1);
+
+  // Check if current product is wishlisted
+  const isWishlisted = currentProduct
+    ? wishlist.some((item) => item.id === currentProduct.id)
+    : false;
+
+  // Handle wishlist toggle click
+  const handleToggleWishlist = () => {
+    if (currentProduct) {
+      toggleWishlist(currentProduct);
+    }
+  };
+
+  // Handle add to cart click
+  const handleAddToCart = () => {
+    if (currentProduct) {
+      addToCart(currentProduct, quantity);
+    }
+  };
 
   // Fetch product data on mount and clean up on unmount
   useEffect(() => {
@@ -96,16 +120,70 @@ export const ProductDetail: React.FC = () => {
                 )}
               </div>
 
-              {/* Decorative Add to Cart button (For future integration) */}
-              <button 
-                type="button"
-                className="btn btn-primary"
-                style={{ width: '100%', padding: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
-                disabled={currentProduct.stock <= 0}
-              >
-                <ShoppingBag size={18} />
-                <span>Add to Shopping Cart</span>
-              </button>
+              {/* Quantity Selector and Action Buttons */}
+              {currentProduct.stock > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                  <span className="form-label" style={{ margin: 0, color: 'var(--text-secondary)' }}>Quantity:</span>
+                  <div style={{ display: 'flex', alignItems: 'center', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+                      style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: 0 }}
+                      aria-label="Decrease quantity"
+                    >
+                      -
+                    </button>
+                    <span style={{ minWidth: '40px', textAlign: 'center', fontWeight: 600, fontSize: '15px' }}>
+                      {quantity}
+                    </span>
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      onClick={() => setQuantity((prev) => Math.min(currentProduct.stock, prev + 1))}
+                      style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: 0 }}
+                      aria-label="Increase quantity"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button 
+                  type="button"
+                  className="btn btn-primary"
+                  style={{ flex: 1, padding: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+                  disabled={currentProduct.stock <= 0}
+                  onClick={handleAddToCart}
+                >
+                  <ShoppingCart size={18} />
+                  <span>Add to Shopping Cart</span>
+                </button>
+
+                <button
+                  type="button"
+                  className={`btn ${isWishlisted ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ 
+                    padding: '14px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    borderColor: isWishlisted ? 'var(--accent-color)' : 'rgba(255,255,255,0.1)'
+                  }}
+                  onClick={handleToggleWishlist}
+                  title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                  aria-label="Toggle Wishlist"
+                >
+                  <Heart 
+                    size={18} 
+                    fill={isWishlisted ? 'var(--accent-color)' : 'none'}
+                    color={isWishlisted ? 'var(--accent-color)' : 'currentColor'}
+                  />
+                </button>
+              </div>
 
             </div>
 

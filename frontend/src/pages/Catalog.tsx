@@ -2,11 +2,17 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProductStore } from '../store/products';
 import type { ProductFilters } from '../store/products';
-import { Search, SlidersHorizontal, ChevronLeft, ChevronRight, Tag, Info } from 'lucide-react';
+import { Search, SlidersHorizontal, ChevronLeft, ChevronRight, Tag, Info, Heart } from 'lucide-react';
+import { useCartStore } from '../store/cart';
 
 export const Catalog: React.FC = () => {
   const navigate = useNavigate();
   const { products, loading, error, page, totalPages, fetchProducts } = useProductStore();
+  const { wishlist, toggleWishlist } = useCartStore();
+
+  // Helper to determine if a product is in the wishlist
+  const isWishlisted = (productId: string) => 
+    wishlist.some((item) => item.id === productId);
 
   // Local state for filter inputs
   const [searchVal, setSearchVal] = useState('');
@@ -207,6 +213,24 @@ export const Catalog: React.FC = () => {
                         loading="lazy"
                       />
                       <span className="product-category-badge">{product.category}</span>
+                      
+                      {/* Floating Wishlist Heart Toggle Button */}
+                      <button
+                        type="button"
+                        className={`wishlist-toggle-btn ${isWishlisted(product.id) ? 'active' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Avoid navigating to details page
+                          toggleWishlist(product);
+                        }}
+                        title={isWishlisted(product.id) ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                        aria-label="Toggle Wishlist"
+                      >
+                        <Heart 
+                          size={16} 
+                          fill={isWishlisted(product.id) ? 'var(--accent-color)' : 'none'}
+                          color={isWishlisted(product.id) ? 'var(--accent-color)' : 'currentColor'}
+                        />
+                      </button>
                     </div>
 
                     <div className="product-card-body">
