@@ -10,6 +10,8 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 
 import { Catalog } from './pages/Catalog';
 import { ProductDetail } from './pages/ProductDetail';
+import { CartDrawer } from './components/CartDrawer';
+import { WishlistModal } from './components/WishlistModal';
 
 function App() {
   const { checkAuth } = useAuthStore();
@@ -23,6 +25,10 @@ function App() {
     <Router>
       {/* Header Navigation Panel */}
       <Navbar />
+
+      {/* Global Overlays: Cart & Wishlist */}
+      <CartDrawer />
+      <WishlistModal />
 
       {/* Main Pages Switcher */}
       <main style={{ flex: 1 }}>

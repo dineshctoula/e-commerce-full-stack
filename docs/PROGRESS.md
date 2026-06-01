@@ -224,5 +224,54 @@ Implemented a complete, premium client-side product catalog, state management, s
 ### Verification Run Output
 * Successfully validated the React codebase using `npx tsc --noEmit`. No errors were found.
 
+---
+
+## Day 6 — Cart & Wishlist
+
+Implemented client-side Cart & Wishlist features using React, Zustand persistent store state, and custom CSS layouts.
+
+### Key Architecture Decisions
+1. **Persistent Zustand State**:
+   - Developed `useCartStore` in `store/cart.ts` using Zustand's `persist` middleware.
+   - Saves the cart items and wishlist state automatically to `localStorage`.
+   - Prevents UI states (drawer/modal open/closed states) from being persisted.
+2. **Slide-Out Cart Drawer UI**:
+   - Built a sleek slide-out panel from the right displaying items, quantity adjusters, subtotal/tax/total pricing breakdown, and checking stock limitations.
+3. **Wishlist Modal Overlay**:
+   - Built a custom modal showcasing all saved wishlist products.
+   - Allows users to add items directly to the cart (with automatic stock verification) or clear wishlist products.
+4. **Unified App Overlays Integration**:
+   - Mounted the `CartDrawer` and `WishlistModal` at the root level (`App.tsx`) for global access from any page without routing overrides.
+
+### Detailed Implementation Steps
+
+#### 1. Cart & Wishlist Zustand Store (`store/cart.ts`)
+* Configured CRUD operations for cart: `addToCart` (clamped to product stock), `removeFromCart`, `updateQuantity` (bounded to 1-stock), and `clearCart`.
+* Configured wishlist actions: `toggleWishlist` and `removeFromWishlist`.
+
+#### 2. Navbar Badges (`components/Navbar.tsx`)
+* Appended shopping bag and heart icons with absolute notification badges.
+* Integrated click actions triggering global overlay visibility states.
+
+#### 3. Wishlist UI & Toggle Buttons (`components/WishlistModal.tsx`, `pages/Catalog.tsx`, `pages/ProductDetail.tsx`)
+* Added floating wishlist toggle heart icon on Catalog page item cards.
+* Appended wishlist selector on Product Details page, along with quantity increment/decrement controls.
+
+#### 4. Cart UI Drawer (`components/CartDrawer.tsx`)
+* Created side-sliding layout panel with subtotal, 10% tax, and total pricing calculators.
+* Bound drawer backdrop dismiss hooks.
+
+#### 5. Verification & Styling (`App.tsx`, `pages/Home.tsx`, `index.css`)
+* Appended dynamic animations (`slideLeft`, `slideUp`, `fadeIn`) and transparent glassmorphic variables to `index.css`.
+* Updated the Roadmap progress on the Home page (Day 6 completed, Day 7 in-progress).
+
+### Verification Run Output
+* Verified that the React project compiles cleanly with zero warnings or errors:
+```bash
+$ npx tsc --noEmit
+# Completed successfully (exit status 0)
+```
+
+
 
 
