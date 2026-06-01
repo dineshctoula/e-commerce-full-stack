@@ -15,9 +15,9 @@ export const Home: React.FC = () => {
 
   // Verify backend connectivity on load
   useEffect(() => {
-    fetch('http://localhost:3000/auth/me', { credentials: 'include' })
+    fetch('http://localhost:3000/health')
       .then((res) => {
-        if (res.status === 401 || res.ok) {
+        if (res.ok) {
           setBackendStatus('ok');
         } else {
           setBackendStatus('error');

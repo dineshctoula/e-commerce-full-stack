@@ -47,7 +47,11 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       if (res.ok) {
         const data = await res.json();
-        set({ user: data.user, isAuthenticated: true });
+        if (data.user) {
+          set({ user: data.user, isAuthenticated: true });
+        } else {
+          set({ user: null, isAuthenticated: false });
+        }
       } else {
         // Not authenticated, clean up state
         set({ user: null, isAuthenticated: false });

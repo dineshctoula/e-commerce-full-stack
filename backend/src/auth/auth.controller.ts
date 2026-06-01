@@ -17,6 +17,7 @@ import { Public } from './decorators/public.decorator';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RtGuard } from './guards/rt.guard';
+import { OptionalAtGuard } from './guards/optional-at.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -86,14 +87,19 @@ export class AuthController {
 
   // GET /auth/me
   // Fetches current user profile from the database based on JWT token
+  @Public()
+  @UseGuards(OptionalAtGuard)
   @Get('me')
   @HttpCode(HttpStatus.OK)
   async me(@GetCurrentUser() user: any) {
+    if (!user || !user.sub) {
+      return { user: null };
+    }
     const dbUser = await this.authService['prisma'].user.findUnique({
       where: { id: user.sub },
     });
     if (!dbUser) {
-      throw new ForbiddenException('User not found');
+      return { user: null };
     }
     return {
       user: {
