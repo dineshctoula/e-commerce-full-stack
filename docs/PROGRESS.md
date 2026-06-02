@@ -272,6 +272,52 @@ $ npx tsc --noEmit
 # Completed successfully (exit status 0)
 ```
 
+---
+
+## Day 7 — Orders API
+Implemented a secure, transactional backend Orders REST API featuring automatic stock verification, backend-sourced price calculations, and role-based access control (RBAC).
+
+### Key Architecture Decisions
+1. **Database Transactions (`$transaction`)**:
+   * Uses Prisma's atomic transaction utility. If any item is out of stock, validation fails, or database insertion errors out, the entire sequence (stock updates and order insertions) rolls back to prevent inconsistencies.
+2. **Backend Price Snapshotting**:
+   * Order prices and totals are calculated entirely on the server using database product records, preventing clients from injecting manipulated prices in POST payloads.
+   * Storing a snapshot of the unit price on the `OrderItem` preserves historical order invoice data even if catalog product pricing changes in the future.
+3. **Role-Based Access Control (RBAC)**:
+   * Normal users can place orders and list/view only their own orders (enforced by matching authenticated token `sub` ID).
+   * Admins can fetch all system orders and transition order statuses (e.g. `PENDING`, `SHIPPED`, `DELIVERED`), secured with `@Roles('ADMIN')` and `RolesGuard`.
+
+### Detailed Implementation Steps
+
+#### 1. DTO Request Validation (`order/dto/create-order.dto.ts`)
+* Defined `CreateOrderDto` containing an array of order items.
+* Enabled nested validations via `class-validator`'s `@ValidateNested` and `class-transformer`'s `@Type`.
+
+#### 2. Order Service & Transaction Flow (`order/order.service.ts`)
+* `createOrder()`: Checks product availability, verifies enough stock exists, decrements stock, calculates sum total, and inserts the `Order` and `OrderItem` records.
+* `getOrders()`: Fetches orders list filtered dynamically by requesting user role.
+* `getOrderById()`: Prevents non-admin users from accessing other accounts' orders.
+* `updateOrderStatus()`: Sanitizes status updates to standard enum values.
+
+#### 3. Controller Actions (`order/order.controller.ts`)
+* Mapped `POST /orders`, `GET /orders`, `GET /orders/:id`, and `PATCH /orders/:id/status`.
+
+#### 4. Unit Testing (`order/order.service.spec.ts`)
+* Added 9 detailed unit tests verifying success paths, out-of-stock validation failures, unauthorized query intercepts, and status update transitions.
+
+### Verification Run Output
+* Tested NestJS backend unit tests:
+```bash
+PASS src/app.controller.spec.ts
+PASS src/product/product.service.spec.ts
+PASS src/auth/auth.service.spec.ts
+PASS src/order/order.service.spec.ts
+
+Test Suites: 4 passed, 4 total
+Tests:       22 passed, 22 total
+```
+
+
 
 
 
