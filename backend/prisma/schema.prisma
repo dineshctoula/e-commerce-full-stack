@@ -20,6 +20,10 @@ model User {
   hashedRt  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  // A user can place multiple orders over time.
+  // One-to-many relationship with Order model.
+  orders    Order[]
 }
 
 model Product {
@@ -32,5 +36,37 @@ model Product {
   stock       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  // A product can be part of multiple order line-items across different orders.
+  // One-to-many relationship with OrderItem model.
+  orderItems  OrderItem[]
 }
+
+// Order model tracks high-level information about a customer purchase.
+model Order {
+  id          String      @id @default(uuid())
+  userId      String      // Foreign key linking to the User who placed the order
+  user        User        @relation(fields: [userId], references: [id])
+  totalAmount Float       // Stored total calculated on the backend to prevent tampering
+  status      String      @default("PENDING") // Status states: PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // An order can consist of multiple individual line items.
+  // One-to-many relationship with OrderItem, cascade deletes if the parent Order is deleted.
+  items       OrderItem[]
+}
+
+// OrderItem model tracks individual line-items within an Order.
+// It stores a snapshot of the product price at checkout to ensure historical accuracy.
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String   // Foreign key linking to the parent Order
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String   // Foreign key linking to the Product purchased
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int      // The quantity of this product purchased
+  price     Float    // Snapshot of the price per unit at the time of order placement
+}
+
 
