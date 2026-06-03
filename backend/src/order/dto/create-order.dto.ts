@@ -31,4 +31,20 @@ export class CreateOrderDto {
   @Type(() => OrderItemDto)
   @IsNotEmpty({ message: 'Order items cannot be empty' })
   items: OrderItemDto[];
+
+  @IsString()
+  @IsNotEmpty({ message: 'Shipping address is required' })
+  shippingAddress: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Shipping city is required' })
+  shippingCity: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Shipping postal code is required' })
+  shippingPostalCode: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Shipping country is required' })
+  shippingCountry: string;
 }

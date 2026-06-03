@@ -50,6 +50,10 @@ describe('OrderService', () => {
       items: [
         { productId: 'prod-1', quantity: 2 },
       ],
+      shippingAddress: '123 Main St',
+      shippingCity: 'Metropolis',
+      shippingPostalCode: '10001',
+      shippingCountry: 'USA',
     };
     const mockProduct = {
       id: 'prod-1',
@@ -94,7 +98,15 @@ describe('OrderService', () => {
         data: { stock: 8 },
       });
       expect(mockPrismaService.order.create).toHaveBeenCalledWith({
-        data: { userId, totalAmount: 300.0, status: 'PENDING' },
+        data: {
+          userId,
+          totalAmount: 300.0,
+          status: 'PENDING',
+          shippingAddress: '123 Main St',
+          shippingCity: 'Metropolis',
+          shippingPostalCode: '10001',
+          shippingCountry: 'USA',
+        },
       });
       expect(mockPrismaService.orderItem.createMany).toHaveBeenCalledWith({
         data: [

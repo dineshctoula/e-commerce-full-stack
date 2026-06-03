@@ -56,6 +56,10 @@ export class OrderService {
           userId,
           totalAmount,
           status: 'PENDING',
+          shippingAddress: dto.shippingAddress,
+          shippingCity: dto.shippingCity,
+          shippingPostalCode: dto.shippingPostalCode,
+          shippingCountry: dto.shippingCountry,
         },
       });
 
