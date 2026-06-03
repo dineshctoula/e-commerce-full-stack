@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth';
-import { Sun, Moon, User, LogOut, ShoppingBag } from 'lucide-react';
+import { Sun, Moon, User, LogOut, ShoppingBag, Heart, ShoppingCart } from 'lucide-react';
+import { useCartStore } from '../store/cart';
 
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuthStore();
+  const { cart, wishlist, setCartOpen, setWishlistOpen } = useCartStore();
   const navigate = useNavigate();
+
+  // Compute total quantities dynamically
+  const cartItemCount = cart.reduce((acc, item) => acc + item.quantity, 0);
+  const wishlistCount = wishlist.length;
   
   // Theme state: dark mode is default
   const [theme, setTheme] = useState<'dark' | 'light'>(
@@ -51,6 +57,40 @@ export const Navbar: React.FC = () => {
             aria-label="Toggle Theme"
           >
             {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+
+          {/* Wishlist Icon Button with Notification Badge */}
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={() => setWishlistOpen(true)}
+            title="Wishlist"
+            aria-label="Wishlist"
+            style={{ position: 'relative' }}
+          >
+            <Heart size={20} />
+            {wishlistCount > 0 && (
+              <span className="nav-badge">
+                {wishlistCount}
+              </span>
+            )}
+          </button>
+
+          {/* Cart Icon Button with Notification Badge */}
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={() => setCartOpen(true)}
+            title="Shopping Cart"
+            aria-label="Shopping Cart"
+            style={{ position: 'relative' }}
+          >
+            <ShoppingCart size={20} />
+            {cartItemCount > 0 && (
+              <span className="nav-badge">
+                {cartItemCount}
+              </span>
+            )}
           </button>
 
           {/* Conditional authentication menu */}
