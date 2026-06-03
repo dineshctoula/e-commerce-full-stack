@@ -317,6 +317,47 @@ Test Suites: 4 passed, 4 total
 Tests:       22 passed, 22 total
 ```
 
+---
+
+## Day 8 — Checkout Flow
+
+Implemented a complete full-stack checkout flow, extending backend order models to persist shipping details, introducing a client-side Zustand order store, building a multi-step checkout form layout, and integrating a detailed order history dashboard.
+
+### Key Architecture Decisions
+1. **Shipping Fields Database Persistence**:
+   - Extended the Prisma SQLite schema's `Order` model with four required fields (`shippingAddress`, `shippingCity`, `shippingPostalCode`, `shippingCountry`) to enforce shipping compliance at database level.
+2. **Multi-Step Checkout State Management**:
+   - Divided checkout processing into three linear steps: Shipping Details form, Order Summary Review with mock payment selection, and Order Confirmation success view.
+3. **Frontend Zustand Order Sync**:
+   - Added `useOrderStore` to manage loading states, network error handling, backend request submissions, and customer order history records in a centralized store.
+4. **Order History Component**:
+   - Refactored the user profile to fetch and visualize past orders, including listing individual line items, dates, statuses, pricing details, and shipping locations.
+
+### Detailed Implementation Steps
+
+#### 1. Database Migrations (`backend/prisma/`)
+* Schema: `schema.prisma` - Added required shipping address strings to the `Order` model.
+* Created and executed SQLite migration `add_shipping_details`.
+
+#### 2. Backend DTO & Service Validation (`backend/src/order/`)
+* DTO: `CreateOrderDto` - Configured `@IsString()` and `@IsNotEmpty()` validation rules for all shipping parameters.
+* Service: `OrderService` - Stored the verified shipping parameters in the database transaction.
+* Tests: `order.service.spec.ts` - Updated unit tests with shipping data parameters.
+
+#### 3. Frontend Zustand Order Store (`store/orders.ts`)
+* Configured `useOrderStore` to trigger endpoints `GET /orders` and `POST /orders` using Cookie-based sessions.
+
+#### 4. Navigation & Route Protections (`App.tsx` & `CartDrawer.tsx`)
+* Registered a new protected route `/checkout`.
+* Pointed the shopping cart drawer's check out action button to programmatically redirect users to the `/checkout` route.
+
+#### 5. Multi-Step Form Components (`pages/Checkout.tsx`)
+* Built three sequential steps with local validations, price math calculations, stock check error states, and a reference ID success page.
+
+#### 6. Order History Dashboard View (`pages/Profile.tsx`)
+* Split the Profile page into a responsive split grid dashboard: Left shows credentials card, Right shows order history card with details and dynamic status badges.
+
+
 
 
 

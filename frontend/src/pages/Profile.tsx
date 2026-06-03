@@ -1,9 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuthStore } from '../store/auth';
-import { User, Mail, Shield, CheckCircle, Calendar } from 'lucide-react';
+import { useOrderStore } from '../store/orders';
+import { User, Mail, Shield, CheckCircle, Calendar, ShoppingBag, MapPin } from 'lucide-react';
 
 export const Profile: React.FC = () => {
   const { user } = useAuthStore();
+  const { orders, fetchOrders, loading } = useOrderStore();
+
+  // Load user orders history when the component mounts
+  useEffect(() => {
+    if (user) {
+      void fetchOrders();
+    }
+  }, [user, fetchOrders]);
 
   if (!user) {
     return (
@@ -13,112 +22,191 @@ export const Profile: React.FC = () => {
     );
   }
 
+  // Helper function to return status badge styling classes
+  const getStatusBadgeStyle = (status: string) => {
+    const formatted = status.toUpperCase();
+    if (formatted === 'DELIVERED') {
+      return { backgroundColor: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', color: '#10b981' };
+    }
+    if (formatted === 'CANCELLED') {
+      return { backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444' };
+    }
+    // PENDING, PROCESSING, SHIPPED
+    return { backgroundColor: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.2)', color: '#f59e0b' };
+  };
+
   return (
-    <div className="container" style={{ padding: '40px 24px', maxWidth: '640px' }}>
-      <div className="auth-card glass" style={{ maxWidth: '100%', padding: '40px', textAlign: 'left' }}>
+    <div className="container main-content" style={{ padding: '40px 24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '32px', alignItems: 'start', textAlign: 'left' }}>
         
-        {/* Profile Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '32px', borderBottom: '1px solid var(--border-color)', paddingBottom: '24px' }}>
-          <div style={{
-            width: '64px',
-            height: '64px',
-            borderRadius: '50%',
-            backgroundColor: 'var(--accent-dim)',
-            color: 'var(--accent-color)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: 'var(--shadow-sm)'
-          }}>
-            <User size={32} />
-          </div>
-          <div>
-            <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', fontWeight: 800 }}>
-              User Profile
-            </h1>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-              Manage your personal security and account settings
-            </p>
-          </div>
-        </div>
-
-        {/* Profile Details List */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
-          {/* User Name */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ color: 'var(--accent-color)' }}><User size={20} /></div>
-            <div style={{ flexGrow: 1 }}>
-              <div className="form-label" style={{ marginBottom: '2px', color: 'var(--text-secondary)' }}>Full Name</div>
-              <div style={{ fontSize: '16px', fontWeight: 600 }}>{user.name || 'Not provided'}</div>
+        {/* Left Side Column: User Info Card */}
+        <section className="auth-card glass" style={{ maxWidth: '100%', padding: '32px' }}>
+          {/* Profile Header */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '20px' }}>
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--accent-dim)',
+              color: 'var(--accent-color)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <User size={28} />
+            </div>
+            <div>
+              <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', fontWeight: 800 }}>
+                My Profile
+              </h1>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
+                Manage account credentials
+              </p>
             </div>
           </div>
 
-          {/* User Email */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ color: 'var(--accent-color)' }}><Mail size={20} /></div>
-            <div style={{ flexGrow: 1 }}>
-              <div className="form-label" style={{ marginBottom: '2px', color: 'var(--text-secondary)' }}>Email Address</div>
-              <div style={{ fontSize: '16px', fontWeight: 600 }}>{user.email}</div>
+          {/* Profile Details List */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* User Name */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ color: 'var(--accent-color)' }}><User size={18} /></div>
+              <div>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Full Name</div>
+                <div style={{ fontSize: '15px', fontWeight: 600 }}>{user.name || 'Not provided'}</div>
+              </div>
             </div>
-          </div>
 
-          {/* User Role */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ color: 'var(--accent-color)' }}><Shield size={20} /></div>
-            <div style={{ flexGrow: 1 }}>
-              <div className="form-label" style={{ marginBottom: '2px', color: 'var(--text-secondary)' }}>Account Permissions</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{
-                  fontSize: '13px',
-                  background: user.role === 'ADMIN' ? 'var(--accent-color)' : 'var(--accent-dim)',
-                  color: user.role === 'ADMIN' ? '#0b0c10' : 'var(--accent-color)',
-                  padding: '4px 10px',
-                  borderRadius: '6px',
-                  fontWeight: 700
-                }}>
-                  {user.role}
-                </span>
-                <span style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <CheckCircle size={14} style={{ color: 'var(--success-color)' }} /> Verified Account
-                </span>
+            {/* User Email */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ color: 'var(--accent-color)' }}><Mail size={18} /></div>
+              <div>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Email Address</div>
+                <div style={{ fontSize: '15px', fontWeight: 600 }}>{user.email}</div>
+              </div>
+            </div>
+
+            {/* User Role */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ color: 'var(--accent-color)' }}><Shield size={18} /></div>
+              <div>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Account Permissions</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                  <span style={{
+                    fontSize: '11px',
+                    background: user.role === 'ADMIN' ? 'var(--accent-color)' : 'var(--accent-dim)',
+                    color: user.role === 'ADMIN' ? '#0b0c10' : 'var(--accent-color)',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    fontWeight: 700
+                  }}>
+                    {user.role}
+                  </span>
+                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <CheckCircle size={12} style={{ color: 'var(--success-color)' }} /> Verified
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Account ID */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '20px', marginTop: '4px' }}>
+              <div style={{ color: 'var(--text-secondary)' }}><Calendar size={18} /></div>
+              <div>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Client ID</div>
+                <div style={{ fontSize: '11px', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{user.id}</div>
               </div>
             </div>
           </div>
+        </section>
 
-          {/* Account ID */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '24px', marginTop: '8px' }}>
-            <div style={{ color: 'var(--text-secondary)' }}><Calendar size={20} /></div>
-            <div style={{ flexGrow: 1 }}>
-              <div className="form-label" style={{ marginBottom: '2px', color: 'var(--text-secondary)' }}>Unique Client ID</div>
-              <div style={{ fontSize: '12px', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{user.id}</div>
+        {/* Right Side Column: Order History list */}
+        <section className="glass" style={{ padding: '32px', borderRadius: '12px', minHeight: '400px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <ShoppingBag size={22} className="accent-color" /> Order History
+          </h2>
+
+          {loading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+              <div className="loading-spinner" />
             </div>
-          </div>
+          ) : orders.length === 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '200px', color: 'var(--text-secondary)' }}>
+              <ShoppingBag size={40} style={{ marginBottom: '12px', opacity: 0.5 }} />
+              <p style={{ fontSize: '14px' }}>You haven't placed any orders yet.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {orders.map((order) => (
+                <div key={order.id} className="glass" style={{ padding: '20px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  
+                  {/* Order Meta row */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px', marginBottom: '12px' }}>
+                    <div>
+                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block' }}>Order ID</span>
+                      <span style={{ fontSize: '12px', fontFamily: 'monospace', fontWeight: 600 }}>{order.id}</span>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block' }}>Date Placed</span>
+                      <span style={{ fontSize: '12px', fontWeight: 600 }}>{new Date(order.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}</span>
+                    </div>
+                    <span 
+                      style={{ 
+                        fontSize: '11px', 
+                        fontWeight: 700, 
+                        padding: '4px 10px', 
+                        borderRadius: '4px',
+                        ...getStatusBadgeStyle(order.status)
+                      }}
+                    >
+                      {order.status}
+                    </span>
+                  </div>
 
-        </div>
+                  {/* Order Items line items list */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {order.items.map((item) => (
+                      <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <img 
+                          src={item.product?.image || 'https://via.placeholder.com/150'} 
+                          alt={item.product?.title || 'Product'} 
+                          style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }}
+                        />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <h4 style={{ fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {item.product?.title || 'Unknown Product'}
+                          </h4>
+                          <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                            Qty: {item.quantity} &bull; ${item.price.toFixed(2)} each
+                          </span>
+                        </div>
+                        <span style={{ fontSize: '13px', fontWeight: 600 }}>
+                          ${(item.price * item.quantity).toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
 
-        {/* Dummy/Interactive Control Settings */}
-        <div style={{ display: 'flex', gap: '12px', marginTop: '40px' }}>
-          <button 
-            type="button" 
-            className="btn btn-primary" 
-            style={{ flex: 1 }} 
-            onClick={() => alert('Profile editing is coming in Day 5!')}
-          >
-            Edit Profile
-          </button>
-          <button 
-            type="button" 
-            className="btn btn-secondary" 
-            style={{ flex: 1 }}
-            onClick={() => alert('Password resetting is coming in Day 5!')}
-          >
-            Reset Password
-          </button>
-        </div>
+                  {/* Order Footer row with Shipping info & total */}
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '12px', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      <MapPin size={14} className="accent-color" />
+                      <span>Ship to: {order.shippingCity}, {order.shippingCountry}</span>
+                    </div>
+                    <div style={{ fontSize: '14px', fontWeight: 700 }}>
+                      <span style={{ color: 'var(--text-secondary)', marginRight: '6px', fontWeight: 500 }}>Grand Total:</span>
+                      <span className="accent-color">${order.totalAmount.toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
       </div>
     </div>
   );
 };
+
 export default Profile;
