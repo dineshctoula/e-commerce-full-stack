@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCartStore } from '../store/cart';
 import { X, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
 
@@ -11,6 +12,7 @@ export const CartDrawer: React.FC = () => {
     removeFromCart,
     clearCart,
   } = useCartStore();
+  const navigate = useNavigate();
 
   // If the cart drawer is closed, do not render anything
   if (!isCartOpen) return null;
@@ -136,8 +138,7 @@ export const CartDrawer: React.FC = () => {
                 style={{ width: '100%', padding: '14px', justifyContent: 'center' }}
                 onClick={() => {
                   setCartOpen(false);
-                  // Day 8 Checkout page redirect placeholder
-                  alert('Checkout flow will be implemented on Day 8!');
+                  navigate('/checkout');
                 }}
               >
                 Proceed to Checkout
