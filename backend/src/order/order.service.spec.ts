@@ -54,6 +54,9 @@ describe('OrderService', () => {
       shippingCity: 'Metropolis',
       shippingPostalCode: '10001',
       shippingCountry: 'USA',
+      shippingPhone: '555-0199',
+      shippingEmail: 'john@example.com',
+      shippingLocalAddress: 'Apartment 4B',
     };
     const mockProduct = {
       id: 'prod-1',
@@ -106,6 +109,9 @@ describe('OrderService', () => {
           shippingCity: 'Metropolis',
           shippingPostalCode: '10001',
           shippingCountry: 'USA',
+          shippingPhone: '555-0199',
+          shippingEmail: 'john@example.com',
+          shippingLocalAddress: 'Apartment 4B',
         },
       });
       expect(mockPrismaService.orderItem.createMany).toHaveBeenCalledWith({

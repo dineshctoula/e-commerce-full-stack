@@ -20,6 +20,9 @@ export const Checkout: React.FC = () => {
     shippingCity: '',
     shippingPostalCode: '',
     shippingCountry: '',
+    shippingPhone: '',
+    shippingEmail: '',
+    shippingLocalAddress: '',
   });
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -38,6 +41,13 @@ export const Checkout: React.FC = () => {
     if (!shippingDetails.shippingCity.trim()) errors.shippingCity = 'City is required';
     if (!shippingDetails.shippingPostalCode.trim()) errors.shippingPostalCode = 'Postal/Zip code is required';
     if (!shippingDetails.shippingCountry.trim()) errors.shippingCountry = 'Country is required';
+    if (!shippingDetails.shippingPhone.trim()) errors.shippingPhone = 'Phone number is required';
+    if (!shippingDetails.shippingEmail.trim()) {
+      errors.shippingEmail = 'Email address is required';
+    } else if (!/\S+@\S+\.\S+/.test(shippingDetails.shippingEmail)) {
+      errors.shippingEmail = 'Please enter a valid email address';
+    }
+    if (!shippingDetails.shippingLocalAddress.trim()) errors.shippingLocalAddress = 'Local address detail is required';
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -67,6 +77,9 @@ export const Checkout: React.FC = () => {
       shippingCity: shippingDetails.shippingCity,
       shippingPostalCode: shippingDetails.shippingPostalCode,
       shippingCountry: shippingDetails.shippingCountry,
+      shippingPhone: shippingDetails.shippingPhone,
+      shippingEmail: shippingDetails.shippingEmail,
+      shippingLocalAddress: shippingDetails.shippingLocalAddress,
     });
 
     if (result) {
@@ -147,6 +160,36 @@ export const Checkout: React.FC = () => {
                 {formErrors.fullName && <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>{formErrors.fullName}</p>}
               </div>
 
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="form-group">
+                  <label htmlFor="shippingEmail" style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '14px' }}>Email Address</label>
+                  <input
+                    type="email"
+                    id="shippingEmail"
+                    className={`form-input ${formErrors.shippingEmail ? 'error' : ''}`}
+                    value={shippingDetails.shippingEmail}
+                    onChange={(e) => setShippingDetails({ ...shippingDetails, shippingEmail: e.target.value })}
+                    placeholder="john@example.com"
+                    style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.05)', color: 'white' }}
+                  />
+                  {formErrors.shippingEmail && <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>{formErrors.shippingEmail}</p>}
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="shippingPhone" style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '14px' }}>Phone Number</label>
+                  <input
+                    type="tel"
+                    id="shippingPhone"
+                    className={`form-input ${formErrors.shippingPhone ? 'error' : ''}`}
+                    value={shippingDetails.shippingPhone}
+                    onChange={(e) => setShippingDetails({ ...shippingDetails, shippingPhone: e.target.value })}
+                    placeholder="+1 (555) 019-9234"
+                    style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.05)', color: 'white' }}
+                  />
+                  {formErrors.shippingPhone && <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>{formErrors.shippingPhone}</p>}
+                </div>
+              </div>
+
               <div className="form-group">
                 <label htmlFor="shippingAddress" style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '14px' }}>Street Address</label>
                 <input
@@ -155,10 +198,24 @@ export const Checkout: React.FC = () => {
                   className={`form-input ${formErrors.shippingAddress ? 'error' : ''}`}
                   value={shippingDetails.shippingAddress}
                   onChange={(e) => setShippingDetails({ ...shippingDetails, shippingAddress: e.target.value })}
-                  placeholder="123 Main St, Apt 4B"
+                  placeholder="123 Main St"
                   style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.05)', color: 'white' }}
                 />
                 {formErrors.shippingAddress && <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>{formErrors.shippingAddress}</p>}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="shippingLocalAddress" style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '14px' }}>Local Address (Apartment, unit, suite, building, floor, etc.)</label>
+                <input
+                  type="text"
+                  id="shippingLocalAddress"
+                  className={`form-input ${formErrors.shippingLocalAddress ? 'error' : ''}`}
+                  value={shippingDetails.shippingLocalAddress}
+                  onChange={(e) => setShippingDetails({ ...shippingDetails, shippingLocalAddress: e.target.value })}
+                  placeholder="Apt 4B, Building C"
+                  style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.05)', color: 'white' }}
+                />
+                {formErrors.shippingLocalAddress && <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>{formErrors.shippingLocalAddress}</p>}
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -256,7 +313,10 @@ export const Checkout: React.FC = () => {
               </h2>
               <div style={{ fontSize: '14px', lineHeight: 1.6, color: 'var(--text-secondary)' }}>
                 <p><strong style={{ color: 'white' }}>Recipient:</strong> {shippingDetails.fullName}</p>
-                <p><strong style={{ color: 'white' }}>Address:</strong> {shippingDetails.shippingAddress}</p>
+                <p><strong style={{ color: 'white' }}>Email:</strong> {shippingDetails.shippingEmail}</p>
+                <p><strong style={{ color: 'white' }}>Phone:</strong> {shippingDetails.shippingPhone}</p>
+                <p><strong style={{ color: 'white' }}>Street Address:</strong> {shippingDetails.shippingAddress}</p>
+                <p><strong style={{ color: 'white' }}>Local Detail:</strong> {shippingDetails.shippingLocalAddress}</p>
                 <p><strong style={{ color: 'white' }}>City & Zip:</strong> {shippingDetails.shippingCity}, {shippingDetails.shippingPostalCode}</p>
                 <p><strong style={{ color: 'white' }}>Country:</strong> {shippingDetails.shippingCountry}</p>
               </div>

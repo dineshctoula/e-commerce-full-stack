@@ -21,6 +21,9 @@ export interface Order {
   shippingCity: string;
   shippingPostalCode: string;
   shippingCountry: string;
+  shippingPhone: string;
+  shippingEmail: string;
+  shippingLocalAddress: string;
   createdAt: string;
   updatedAt: string;
   items: OrderItem[];
@@ -41,6 +44,9 @@ interface OrderState {
       shippingCity: string;
       shippingPostalCode: string;
       shippingCountry: string;
+      shippingPhone: string;
+      shippingEmail: string;
+      shippingLocalAddress: string;
     }
   ) => Promise<Order | null>;
   clearError: () => void;

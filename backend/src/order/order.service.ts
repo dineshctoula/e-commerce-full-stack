@@ -60,6 +60,9 @@ export class OrderService {
           shippingCity: dto.shippingCity,
           shippingPostalCode: dto.shippingPostalCode,
           shippingCountry: dto.shippingCountry,
+          shippingPhone: dto.shippingPhone,
+          shippingEmail: dto.shippingEmail,
+          shippingLocalAddress: dto.shippingLocalAddress,
         },
       });
 

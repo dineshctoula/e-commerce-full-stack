@@ -187,12 +187,15 @@ export const Profile: React.FC = () => {
                   </div>
 
                   {/* Order Footer row with Shipping info & total */}
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '12px', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      <MapPin size={14} className="accent-color" />
-                      <span>Ship to: {order.shippingCity}, {order.shippingCountry}</span>
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '12px', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      <MapPin size={14} className="accent-color" style={{ marginTop: '2px', flexShrink: 0 }} />
+                      <div>
+                        <span><strong>Address:</strong> {order.shippingAddress}, {order.shippingLocalAddress}, {order.shippingCity}, {order.shippingPostalCode}, {order.shippingCountry}</span>
+                        <span style={{ display: 'block', marginTop: '2px' }}><strong>Contact:</strong> {order.shippingEmail} | {order.shippingPhone}</span>
+                      </div>
                     </div>
-                    <div style={{ fontSize: '14px', fontWeight: 700 }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: '14px', fontWeight: 700, borderTop: '1px solid rgba(255,255,255,0.02)', paddingTop: '8px' }}>
                       <span style={{ color: 'var(--text-secondary)', marginRight: '6px', fontWeight: 500 }}>Grand Total:</span>
                       <span className="accent-color">${order.totalAmount.toFixed(2)}</span>
                     </div>

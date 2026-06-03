@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsEmail,
   IsInt,
   IsNotEmpty,
   IsString,
@@ -47,4 +48,16 @@ export class CreateOrderDto {
   @IsString()
   @IsNotEmpty({ message: 'Shipping country is required' })
   shippingCountry: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Shipping phone number is required' })
+  shippingPhone: string;
+
+  @IsEmail({}, { message: 'A valid shipping email is required' })
+  @IsNotEmpty({ message: 'Shipping email is required' })
+  shippingEmail: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Shipping local address is required' })
+  shippingLocalAddress: string;
 }
