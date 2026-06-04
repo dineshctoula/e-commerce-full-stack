@@ -357,6 +357,47 @@ Implemented a complete full-stack checkout flow, extending backend order models 
 #### 6. Order History Dashboard View (`pages/Profile.tsx`)
 * Split the Profile page into a responsive split grid dashboard: Left shows credentials card, Right shows order history card with details and dynamic status badges.
 
+---
+
+## Day 9 — Stripe Payments
+
+Implemented a secure, full-stack payment gateway integration using Stripe SDK (backend) and Stripe Elements (frontend).
+
+### Key Architecture Decisions
+1. **Secure Backend-Mediated Payment Intents**:
+   - Instead of sending card information to our server, we initialize a `PaymentIntent` via Stripe on the NestJS backend using the order total stored in our database.
+   - This ensures the exact amount is verified, prevents user tampering with payment details, and complies with PCI-DSS guidelines.
+2. **Stripe Elements card form**:
+   - Used `@stripe/react-stripe-js` to render the secure `CardElement` component on the frontend, ensuring customer payment credentials go directly to Stripe's servers.
+3. **Double Confirmation Loop**:
+   - Order is created first in a `PENDING` state.
+   - After a client successfully pays via Stripe, a separate confirmation request is sent to the backend (`POST /payments/confirm`).
+   - The backend retrieves the status of the `PaymentIntent` from Stripe, verifies its metadata corresponds to the current order ID, and safely transitions the status to `PROCESSING` within a database transaction.
+
+### Detailed Implementation Steps
+
+#### 1. Backend Payment Module (`backend/src/payment/`)
+* Created `PaymentService`, `PaymentController`, `PaymentModule`, and registration in `AppModule`.
+* Exposed endpoints:
+  - `POST /payments/create-intent` (creates PaymentIntent, returns clientSecret).
+  - `POST /payments/confirm` (validates success with Stripe, updates order status to `PROCESSING`).
+
+#### 2. Backend Unit Testing (`backend/src/payment/payment.service.spec.ts`)
+* Added unit tests asserting success paths and all error states (order not found, unauthorized, invalid state, Stripe payment mismatch).
+* Mocked Stripe instance and Prisma database transactions successfully.
+
+#### 3. Frontend Store Integration (`frontend/src/store/orders.ts`)
+* Extended `useOrderStore` with `createPaymentIntent` and `confirmPayment` actions communicating with backend endpoints.
+
+#### 4. Frontend Checkout Integration (`frontend/src/pages/Checkout.tsx`)
+* Wrapped checkout view inside Stripe's `<Elements>` provider using `loadStripe` and publishable key.
+* Integrated card details payment form showing the `CardElement` when the card payment option is selected.
+* Updated checkout submit handler to coordinate:
+  1. Call `createOrder` to get a pending order ID.
+  2. Request Stripe PaymentIntent from the backend.
+  3. Execute `stripe.confirmCardPayment` on the client side.
+  4. Invoke backend `confirmPayment` to transition the status on success.
+
 
 
 
