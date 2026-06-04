@@ -50,6 +50,8 @@ interface OrderState {
     }
   ) => Promise<Order | null>;
   clearError: () => void;
+  createPaymentIntent: (orderId: string) => Promise<{ clientSecret: string; paymentIntentId: string } | null>;
+  confirmPayment: (orderId: string, paymentIntentId: string) => Promise<boolean>;
 }
 
 const API_BASE = 'http://localhost:3000';
@@ -119,6 +121,54 @@ export const useOrderStore = create<OrderState>((set) => ({
     } catch (err: any) {
       set({ error: err.message || 'Something went wrong.' });
       return null;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  createPaymentIntent: async (orderId) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await fetch(`${API_BASE}/payments/create-intent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to create payment intent.');
+      }
+      return data;
+    } catch (err: any) {
+      set({ error: err.message || 'Payment setup failed.' });
+      return null;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  confirmPayment: async (orderId, paymentIntentId) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await fetch(`${API_BASE}/payments/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, paymentIntentId }),
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Payment confirmation failed.');
+      }
+      set((state) => ({
+        orders: state.orders.map((o) => o.id === orderId ? { ...o, status: 'PROCESSING' } : o),
+        error: null,
+      }));
+      return true;
+    } catch (err: any) {
+      set({ error: err.message || 'Failed to confirm payment on backend.' });
+      return false;
     } finally {
       set({ loading: false });
     }

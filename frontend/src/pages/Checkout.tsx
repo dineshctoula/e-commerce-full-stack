@@ -3,15 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { useCartStore } from '../store/cart';
 import { useOrderStore } from '../store/orders';
 import { MapPin, CreditCard, CheckCircle, ArrowRight, ArrowLeft, ShoppingBag } from 'lucide-react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
-export const Checkout: React.FC = () => {
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
+
+const CheckoutContent: React.FC = () => {
   const navigate = useNavigate();
   const { cart, clearCart } = useCartStore();
-  const { createOrder, loading, error, clearError } = useOrderStore();
+  const { createOrder, loading, error, clearError, createPaymentIntent, confirmPayment: confirmOrderPayment } = useOrderStore();
+  const stripe = useStripe();
+  const elements = useElements();
 
   // Active step state: 1 = Shipping, 2 = Review, 3 = Success
   const [step, setStep] = useState<number>(1);
   const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
 
   // Form states for Shipping details
   const [shippingDetails, setShippingDetails] = useState({
@@ -65,27 +72,91 @@ export const Checkout: React.FC = () => {
   // Step 2: Confirm and Place Order
   const handlePlaceOrder = async () => {
     clearError();
+    setPaymentLoading(true);
 
-    // Map cart items into the simple productId/quantity shape expected by the DTO
-    const orderItems = cart.map((item) => ({
-      productId: item.product.id,
-      quantity: item.quantity,
-    }));
+    try {
+      // 1. Map and create the pending order
+      const orderItems = cart.map((item) => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+      }));
 
-    const result = await createOrder(orderItems, {
-      shippingAddress: shippingDetails.shippingAddress,
-      shippingCity: shippingDetails.shippingCity,
-      shippingPostalCode: shippingDetails.shippingPostalCode,
-      shippingCountry: shippingDetails.shippingCountry,
-      shippingPhone: shippingDetails.shippingPhone,
-      shippingEmail: shippingDetails.shippingEmail,
-      shippingLocalAddress: shippingDetails.shippingLocalAddress,
-    });
+      const orderResult = await createOrder(orderItems, {
+        shippingAddress: shippingDetails.shippingAddress,
+        shippingCity: shippingDetails.shippingCity,
+        shippingPostalCode: shippingDetails.shippingPostalCode,
+        shippingCountry: shippingDetails.shippingCountry,
+        shippingPhone: shippingDetails.shippingPhone,
+        shippingEmail: shippingDetails.shippingEmail,
+        shippingLocalAddress: shippingDetails.shippingLocalAddress,
+      });
 
-    if (result) {
-      setCreatedOrderId(result.id);
-      clearCart(); // Clear items out of user's shopping bag
-      setStep(3);  // Advance to Success screen
+      if (!orderResult) {
+        setPaymentLoading(false);
+        return;
+      }
+
+      // If COD, bypass Stripe
+      if (paymentMethod === 'cod') {
+        setCreatedOrderId(orderResult.id);
+        clearCart();
+        setStep(3);
+        setPaymentLoading(false);
+        return;
+      }
+
+      // If Card payment, process with Stripe
+      if (!stripe || !elements) {
+        throw new Error('Stripe has not loaded yet.');
+      }
+
+      const cardElement = elements.getElement(CardElement);
+      if (!cardElement) {
+        throw new Error('Card element not found.');
+      }
+
+      // 2. Request PaymentIntent clientSecret from backend
+      const intentResult = await createPaymentIntent(orderResult.id);
+      if (!intentResult) {
+        throw new Error('Failed to create Stripe payment intent.');
+      }
+
+      // 3. Confirm card payment with Stripe
+      const { paymentIntent, error: stripeError } = await stripe.confirmCardPayment(
+        intentResult.clientSecret,
+        {
+          payment_method: {
+            card: cardElement,
+            billing_details: {
+              name: shippingDetails.fullName,
+              email: shippingDetails.shippingEmail,
+              phone: shippingDetails.shippingPhone,
+            },
+          },
+        }
+      );
+
+      if (stripeError) {
+        throw new Error(stripeError.message || 'Payment confirmation failed with Stripe.');
+      }
+
+      if (paymentIntent && paymentIntent.status === 'succeeded') {
+        // 4. Confirm payment status on the backend to update order to PROCESSING
+        const confirmResult = await confirmOrderPayment(orderResult.id, paymentIntent.id);
+        if (confirmResult) {
+          setCreatedOrderId(orderResult.id);
+          clearCart();
+          setStep(3);
+        } else {
+          throw new Error('Payment succeeded, but failed to confirm order status on server.');
+        }
+      } else {
+        throw new Error('Payment status did not succeed.');
+      }
+    } catch (err: any) {
+      useOrderStore.setState({ error: err.message || 'Payment processing failed.' });
+    } finally {
+      setPaymentLoading(false);
     }
   };
 
@@ -341,10 +412,42 @@ export const Checkout: React.FC = () => {
                     style={{ cursor: 'pointer' }}
                   />
                   <div>
-                    <strong style={{ display: 'block', fontSize: '14px' }}>Dummy Credit Card / Visa</strong>
-                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Instantly process order with a test payment.</span>
+                    <strong style={{ display: 'block', fontSize: '14px' }}>Stripe Secure Card Payment</strong>
+                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Pay safely using Stripe elements.</span>
                   </div>
                 </label>
+
+                {paymentMethod === 'card' && (
+                  <div className="glass" style={{ padding: '20px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', marginTop: '8px' }}>
+                    <label style={{ display: 'block', marginBottom: '12px', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      Card Details
+                    </label>
+                    <div style={{
+                      padding: '12px',
+                      borderRadius: '6px',
+                      backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                      border: '1px solid rgba(255,255,255,0.05)'
+                    }}>
+                      <CardElement options={{
+                        style: {
+                          base: {
+                            color: '#ffffff',
+                            fontFamily: 'Inter, sans-serif',
+                            fontSmoothing: 'antialiased',
+                            fontSize: '15px',
+                            '::placeholder': {
+                              color: 'rgba(255,255,255,0.3)',
+                            },
+                          },
+                          invalid: {
+                            color: '#ef4444',
+                            iconColor: '#ef4444',
+                          },
+                        },
+                      }} />
+                    </div>
+                  </div>
+                )}
                 
                 <label className={`payment-option glass ${paymentMethod === 'cod' ? 'selected' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', backgroundColor: paymentMethod === 'cod' ? 'rgba(255, 255, 255, 0.05)' : 'transparent' }}>
                   <input
@@ -387,16 +490,16 @@ export const Checkout: React.FC = () => {
               <button
                 className="btn btn-primary"
                 onClick={handlePlaceOrder}
-                disabled={loading}
+                disabled={loading || paymentLoading}
                 style={{ width: '100%', padding: '14px', justifyContent: 'center' }}
               >
-                {loading ? 'Processing...' : 'Confirm & Place Order'}
+                {loading || paymentLoading ? 'Processing...' : 'Confirm & Place Order'}
               </button>
               
               <button
                 className="btn btn-secondary"
                 onClick={() => setStep(1)}
-                disabled={loading}
+                disabled={loading || paymentLoading}
                 style={{ width: '100%', padding: '10px', justifyContent: 'center' }}
               >
                 <ArrowLeft size={16} style={{ marginRight: '6px' }} /> Back to Shipping
@@ -433,6 +536,14 @@ export const Checkout: React.FC = () => {
         </div>
       )}
     </div>
+  );
+};
+
+export const Checkout: React.FC = () => {
+  return (
+    <Elements stripe={stripePromise}>
+      <CheckoutContent />
+    </Elements>
   );
 };
 
