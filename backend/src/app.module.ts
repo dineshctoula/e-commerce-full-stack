@@ -7,9 +7,10 @@ import { AuthModule } from './auth/auth.module';
 import { AtGuard } from './auth/guards/at.guard';
 import { ProductModule } from './product/product.module';
 import { OrderModule } from './order/order.module';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, ProductModule, OrderModule],
+  imports: [PrismaModule, AuthModule, ProductModule, OrderModule, PaymentModule],
   controllers: [AppController],
   providers: [
     AppService,
