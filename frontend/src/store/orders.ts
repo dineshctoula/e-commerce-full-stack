@@ -33,7 +33,9 @@ export interface Order {
 interface OrderState {
   orders: Order[];
   loading: boolean;
-  error: string | null;
+  adminStats: any | null;
+  statsLoading: boolean;
+  statsError: string | null;
 
   // Actions
   fetchOrders: () => Promise<void>;
@@ -52,6 +54,8 @@ interface OrderState {
   clearError: () => void;
   createPaymentIntent: (orderId: string) => Promise<{ clientSecret: string; paymentIntentId: string } | null>;
   confirmPayment: (orderId: string, paymentIntentId: string) => Promise<boolean>;
+  fetchAdminStats: () => Promise<void>;
+  updateOrderStatus: (orderId: string, status: string) => Promise<boolean>;
 }
 
 const API_BASE = 'http://localhost:3000';
@@ -60,6 +64,9 @@ export const useOrderStore = create<OrderState>((set) => ({
   orders: [],
   loading: false,
   error: null,
+  adminStats: null,
+  statsLoading: false,
+  statsError: null,
 
   // Helper action to clear error state
   clearError: () => set({ error: null }),
@@ -168,6 +175,64 @@ export const useOrderStore = create<OrderState>((set) => ({
       return true;
     } catch (err: any) {
       set({ error: err.message || 'Failed to confirm payment on backend.' });
+      return false;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  fetchAdminStats: async () => {
+    set({ statsLoading: true, statsError: null });
+    try {
+      const res = await fetch(`${API_BASE}/orders/admin/stats`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to fetch admin statistics.');
+      }
+      set({ adminStats: data, statsError: null });
+    } catch (err: any) {
+      set({ statsError: err.message || 'Error occurred while loading statistics.' });
+    } finally {
+      set({ statsLoading: false });
+    }
+  },
+
+  updateOrderStatus: async (orderId, status) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await fetch(`${API_BASE}/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to update order status.');
+      }
+      set((state) => ({
+        orders: state.orders.map((o) => (o.id === orderId ? data : o)),
+        error: null,
+      }));
+      set((state) => {
+        if (!state.adminStats) return {};
+        const updatedRecent = state.adminStats.recentOrders.map((o: any) =>
+          o.id === orderId ? { ...o, status: data.status } : o
+        );
+        return {
+          adminStats: {
+            ...state.adminStats,
+            recentOrders: updatedRecent,
+          },
+        };
+      });
+      return true;
+    } catch (err: any) {
+      set({ error: err.message || 'Error updating order status.' });
       return false;
     } finally {
       set({ loading: false });
