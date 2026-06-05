@@ -398,8 +398,56 @@ Implemented a secure, full-stack payment gateway integration using Stripe SDK (b
   3. Execute `stripe.confirmCardPayment` on the client side.
   4. Invoke backend `confirmPayment` to transition the status on success.
 
+---
 
+## Day 10 — Admin Dashboard
 
+Implemented a complete full-stack Admin Control Center featuring system-wide analytics, order status management, and complete product CRUD operations.
 
+### Key Architecture Decisions
+1. **Secure Admin Stats API**:
+   - Built a secure backend analytics endpoint (`GET /orders/admin/stats`) restricted to users with the `ADMIN` role.
+   - Computes key performance metrics (total sales, order counts, average order values, and inventory status) and breakdowns (category sales, order status counts) dynamically in SQL.
+2. **State-Driven Action Stores**:
+   - Extended the frontend Zustand state stores (`useProductStore` and `useOrderStore`) with admin actions (product CRUD operations and order status overrides) communicating securely with cookie-authenticated backend routes.
+3. **Tabbed Control Console**:
+   - Developed an integrated admin console (`pages/AdminDashboard.tsx`) with three dedicated tabs: Dashboard Stats (real-time charts and summaries), Manage Orders (status changes and detail panels), and Manage Products (catalog grid with forms).
+4. **Declarative Modal Dialogs**:
+   - Implemented sleek HTML/CSS modals for creating products, editing products, and confirming catalog deletions without relying on heavy third-party UI libraries.
 
+### Detailed Implementation Steps
 
+#### 1. Backend Service & Controller (`backend/src/order/`)
+* Service: `OrderService` - Implemented `getAdminStats()` computing metrics using Prisma aggregates and category sales grouping, with robust unit testing.
+* Controller: `OrderController` - Exposed `GET /orders/admin/stats` guarded by the global roles middleware.
+
+#### 2. Frontend Zustand Stores (`frontend/src/store/`)
+* Products Store: Added `createProduct`, `updateProduct`, and `deleteProduct` using cookie credentials.
+* Orders Store: Added `fetchAdminStats` and `updateOrderStatus` with state updates.
+
+#### 3. Administrative Router Protection (`frontend/src/App.tsx` & `components/Navbar.tsx`)
+* Registered the `/admin` path wrapped inside the pre-existing `AdminRoute` guard.
+* Appended a conditionally rendered "Admin" link in the navigation header for users with the `ADMIN` role.
+
+#### 4. Dashboard View & Forms (`frontend/src/pages/AdminDashboard.tsx`)
+* Built the responsive stats grid, system orders status modification selector, in-memory catalog search, product creation/updating forms, and item deletion modals.
+
+### Verification Run Output
+* All backend Jest tests passed successfully:
+```bash
+PASS src/product/product.service.spec.ts
+PASS src/app.controller.spec.ts
+PASS src/auth/auth.service.spec.ts
+PASS src/payment/payment.service.spec.ts
+PASS src/order/order.service.spec.ts
+
+Test Suites: 5 passed, 5 total
+Tests:       33 passed, 33 total
+Snapshots:   0 total
+Time:        4.251 s
+```
+* React codebase compiles cleanly with zero warnings:
+```bash
+$ npx tsc --noEmit
+# Completed successfully (exit status 0)
+```

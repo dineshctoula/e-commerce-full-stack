@@ -6,7 +6,8 @@ import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Profile } from './pages/Profile';
-import { ProtectedRoute } from './components/ProtectedRoute';
+import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
+import { AdminDashboard } from './pages/AdminDashboard';
 
 import { Catalog } from './pages/Catalog';
 import { ProductDetail } from './pages/ProductDetail';
@@ -62,6 +63,16 @@ function App() {
               <ProtectedRoute>
                 <Checkout />
               </ProtectedRoute>
+            }
+          />
+
+          {/* Protected Admin Control Center */}
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
             }
           />
         </Routes>

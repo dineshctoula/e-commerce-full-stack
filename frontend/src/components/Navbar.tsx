@@ -48,6 +48,13 @@ export const Navbar: React.FC = () => {
             Shop
           </Link>
 
+          {/* Admin link for administrators */}
+          {isAuthenticated && user?.role === 'ADMIN' && (
+            <Link to="/admin" className="nav-link" style={{ color: 'var(--accent-color)', fontWeight: 600 }}>
+              Admin
+            </Link>
+          )}
+
           {/* Light/Dark Theme Switcher */}
           <button 
             type="button" 
