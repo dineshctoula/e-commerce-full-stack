@@ -13,6 +13,7 @@ describe('OrderService', () => {
     product: {
       findMany: jest.fn(),
       update: jest.fn(),
+      count: jest.fn(),
     },
     order: {
       create: jest.fn(),
@@ -239,6 +240,74 @@ describe('OrderService', () => {
       await expect(
         service.updateOrderStatus('invalid-order', 'SHIPPED'),
       ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('getAdminStats', () => {
+    it('should calculate and return correct admin stats', async () => {
+      const mockOrders = [
+        {
+          id: 'order-1',
+          status: 'DELIVERED',
+          totalAmount: 150.0,
+          items: [
+            {
+              price: 50.0,
+              quantity: 3,
+              product: { category: 'Electronics' },
+            },
+          ],
+        },
+        {
+          id: 'order-2',
+          status: 'PENDING',
+          totalAmount: 100.0,
+          items: [
+            {
+              price: 100.0,
+              quantity: 1,
+              product: { category: 'Books' },
+            },
+          ],
+        },
+        {
+          id: 'order-3',
+          status: 'CANCELLED',
+          totalAmount: 80.0,
+          items: [
+            {
+              price: 80.0,
+              quantity: 1,
+              product: { category: 'Books' },
+            },
+          ],
+        },
+      ];
+
+      mockPrismaService.order.findMany.mockResolvedValueOnce(mockOrders);
+      mockPrismaService.product.count.mockResolvedValueOnce(10);
+      mockPrismaService.product.count.mockResolvedValueOnce(2);
+      mockPrismaService.order.findMany.mockResolvedValueOnce(mockOrders.slice(0, 2));
+
+      const result = await service.getAdminStats();
+
+      expect(result.totalSales).toBe(250.0);
+      expect(result.totalOrders).toBe(3);
+      expect(result.averageOrderValue).toBe(125.0);
+      expect(result.statusBreakdown).toEqual({
+        PENDING: 1,
+        PROCESSING: 0,
+        SHIPPED: 0,
+        DELIVERED: 1,
+        CANCELLED: 1,
+      });
+      expect(result.categorySales).toEqual({
+        Electronics: 150.0,
+        Books: 100.0,
+      });
+      expect(result.totalProducts).toBe(10);
+      expect(result.outOfStockProducts).toBe(2);
+      expect(result.recentOrders.length).toBe(2);
     });
   });
 });

@@ -33,6 +33,16 @@ export class OrderController {
     return this.orderService.getOrders(userId, role);
   }
 
+  // GET /orders/admin/stats
+  // Retrieves administrative statistics. Restricted to ADMIN role only.
+  @Get('admin/stats')
+  @Roles('ADMIN')
+  @UseGuards(RolesGuard)
+  @HttpCode(HttpStatus.OK)
+  getStats() {
+    return this.orderService.getAdminStats();
+  }
+
   // GET /orders/:id
   // Retrieves details of a single order. Validates ownership (unless Admin).
   @Get(':id')

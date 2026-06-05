@@ -200,4 +200,84 @@ export class OrderService {
       },
     });
   }
+
+  /**
+   * Retrieves administrative analytics and statistics.
+   * Accessible only by ADMIN users.
+   */
+  async getAdminStats() {
+    const orders = await this.prisma.order.findMany({
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    const activeOrders = orders.filter((o) => o.status !== 'CANCELLED');
+    const totalSales = activeOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+    const totalOrders = orders.length;
+    const averageOrderValue = activeOrders.length > 0 ? totalSales / activeOrders.length : 0;
+
+    // Status breakdown
+    const statusBreakdown = {
+      PENDING: 0,
+      PROCESSING: 0,
+      SHIPPED: 0,
+      DELIVERED: 0,
+      CANCELLED: 0,
+    };
+    for (const order of orders) {
+      const status = order.status.toUpperCase();
+      if (status in statusBreakdown) {
+        statusBreakdown[status as keyof typeof statusBreakdown]++;
+      }
+    }
+
+    // Category Sales breakdown
+    const categorySales: Record<string, number> = {};
+    for (const order of activeOrders) {
+      for (const item of order.items) {
+        const cat = item.product?.category || 'Other';
+        categorySales[cat] = (categorySales[cat] || 0) + item.price * item.quantity;
+      }
+    }
+
+    const totalProducts = await this.prisma.product.count();
+    const outOfStockProducts = await this.prisma.product.count({
+      where: { stock: 0 },
+    });
+
+    const recentOrders = await this.prisma.order.findMany({
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    return {
+      totalSales,
+      totalOrders,
+      averageOrderValue,
+      statusBreakdown,
+      categorySales,
+      totalProducts,
+      outOfStockProducts,
+      recentOrders,
+    };
+  }
 }
