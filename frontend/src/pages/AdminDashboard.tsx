@@ -18,7 +18,9 @@ import {
   MapPin,
   Mail,
   Phone,
-  Plus
+  Plus,
+  Edit,
+  Trash2
 } from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
@@ -39,8 +41,113 @@ export const AdminDashboard: React.FC = () => {
   const {
     products,
     loading: productsLoading,
-    fetchProducts
+    fetchProducts,
+    createProduct,
+    updateProduct,
+    deleteProduct
   } = useProductStore();
+
+  // Modals & Form State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<'create' | 'edit'>('create');
+  const [deleteProductId, setDeleteProductId] = useState<string | null>(null);
+  const [editProductId, setEditProductId] = useState<string | null>(null);
+  const [productSearch, setProductSearch] = useState('');
+
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    price: '',
+    stock: '',
+    category: 'Accessories',
+    image: '',
+  });
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const openCreateModal = () => {
+    setFormData({
+      title: '',
+      description: '',
+      price: '',
+      stock: '',
+      category: 'Accessories',
+      image: '',
+    });
+    setFormError(null);
+    setModalType('create');
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (product: any) => {
+    setFormData({
+      title: product.title,
+      description: product.description,
+      price: product.price.toString(),
+      stock: product.stock.toString(),
+      category: product.category,
+      image: product.image || '',
+    });
+    setFormError(null);
+    setEditProductId(product.id);
+    setModalType('edit');
+    setIsModalOpen(true);
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError(null);
+
+    if (!formData.title.trim() || !formData.description.trim()) {
+      setFormError('Title and Description are required.');
+      return;
+    }
+    const parsedPrice = parseFloat(formData.price);
+    if (isNaN(parsedPrice) || parsedPrice <= 0) {
+      setFormError('Price must be a positive number.');
+      return;
+    }
+    const parsedStock = parseInt(formData.stock, 10);
+    if (isNaN(parsedStock) || parsedStock < 0) {
+      setFormError('Stock must be a non-negative integer.');
+      return;
+    }
+
+    const payload = {
+      title: formData.title.trim(),
+      description: formData.description.trim(),
+      price: parsedPrice,
+      stock: parsedStock,
+      category: formData.category,
+      image: formData.image.trim() || undefined,
+    };
+
+    let success = false;
+    if (modalType === 'create') {
+      success = await createProduct(payload as any);
+    } else if (modalType === 'edit' && editProductId) {
+      success = await updateProduct(editProductId, payload);
+    }
+
+    if (success) {
+      setIsModalOpen(false);
+      void fetchAdminStats();
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (deleteProductId) {
+      const success = await deleteProduct(deleteProductId);
+      if (success) {
+        setDeleteProductId(null);
+        void fetchAdminStats();
+      }
+    }
+  };
+
+  const filteredProducts = products.filter((p) =>
+    p.title.toLowerCase().includes(productSearch.toLowerCase()) ||
+    p.category.toLowerCase().includes(productSearch.toLowerCase())
+  );
 
   useEffect(() => {
     void fetchAdminStats();
@@ -505,12 +612,268 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Products Management Tab (Placeholder for Commit 3) */}
+      {/* Products Management Tab */}
       {activeTab === 'products' && (
-        <div className="glass" style={{ padding: '48px', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-          <Package size={48} className="accent-color" />
-          <h3>Manage Product Catalog</h3>
-          <p style={{ color: 'var(--text-secondary)' }}>Product list loading...</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* Action Header */}
+          <div className="glass" style={{ padding: '20px 24px', borderRadius: '16px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px', textAlign: 'left' }}>
+            <div style={{ display: 'flex', gap: '12px', flex: 1, minWidth: '280px' }}>
+              <input
+                type="text"
+                placeholder="Search products by title or category..."
+                value={productSearch}
+                onChange={(e) => setProductSearch(e.target.value)}
+                className="form-input"
+                style={{ maxWidth: '400px' }}
+              />
+            </div>
+            <button
+              onClick={openCreateModal}
+              className="btn btn-primary"
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px' }}
+            >
+              <Plus size={16} />
+              <span>Add New Product</span>
+            </button>
+          </div>
+
+          {/* Products Table Card */}
+          <div className="glass" style={{ padding: '24px', borderRadius: '16px', textAlign: 'left' }}>
+            {productsLoading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px' }}>
+                <div className="spinner" />
+                <p style={{ marginTop: '12px' }}>Loading catalog products...</p>
+              </div>
+            ) : filteredProducts.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
+                No products found matching your search.
+              </div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Image</th>
+                      <th>Title & Category</th>
+                      <th>Price</th>
+                      <th>Stock Status</th>
+                      <th style={{ textAlign: 'right' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredProducts.map((product) => (
+                      <tr key={product.id}>
+                        <td>
+                          <img
+                            src={product.image || 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=150'}
+                            alt={product.title}
+                            style={{ width: '44px', height: '44px', objectFit: 'cover', borderRadius: '6px' }}
+                          />
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ fontWeight: 600 }}>{product.title}</span>
+                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                              {product.category}
+                            </span>
+                          </div>
+                        </td>
+                        <td style={{ fontWeight: 600 }}>
+                          ${product.price.toFixed(2)}
+                        </td>
+                        <td>
+                          {product.stock === 0 ? (
+                            <span className="status-badge status-badge-cancelled" style={{ fontSize: '11px' }}>
+                              Out of Stock
+                            </span>
+                          ) : product.stock <= 5 ? (
+                            <span className="status-badge status-badge-pending" style={{ fontSize: '11px' }}>
+                              Low Stock ({product.stock})
+                            </span>
+                          ) : (
+                            <span className="status-badge status-badge-delivered" style={{ fontSize: '11px' }}>
+                              {product.stock} Available
+                            </span>
+                          )}
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                            <button
+                              onClick={() => openEditModal(product)}
+                              className="btn btn-secondary btn-sm"
+                              style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px' }}
+                              title="Edit Product"
+                            >
+                              <Edit size={14} />
+                              <span>Edit</span>
+                            </button>
+                            <button
+                              onClick={() => setDeleteProductId(product.id)}
+                              className="btn btn-secondary btn-sm"
+                              style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)' }}
+                              title="Delete Product"
+                            >
+                              <Trash2 size={14} />
+                              <span>Delete</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Form Modal (Create / Edit Product) */}
+      {isModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' }}>
+          <div className="glass" style={{ padding: '32px', borderRadius: '16px', maxWidth: '500px', width: '90%', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', fontWeight: 700, margin: 0 }}>
+              {modalType === 'create' ? 'Add New Product' : 'Edit Product'}
+            </h3>
+
+            {formError && (
+              <div className="error-alert" style={{ fontSize: '13px', padding: '10px 14px' }}>
+                <Info size={14} />
+                <span>{formError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label className="form-label" style={{ marginBottom: '6px' }}>Product Title</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Mechanical Keyboard"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div>
+                <label className="form-label" style={{ marginBottom: '6px' }}>Category</label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="form-input"
+                  style={{ cursor: 'pointer' }}
+                >
+                  <option value="Accessories">Accessories</option>
+                  <option value="Electronics">Electronics</option>
+                  <option value="Clothing">Clothing</option>
+                  <option value="Home & Kitchen">Home & Kitchen</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label className="form-label" style={{ marginBottom: '6px' }}>Price ($)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    min="0.01"
+                    placeholder="99.99"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    className="form-input"
+                  />
+                </div>
+                <div>
+                  <label className="form-label" style={{ marginBottom: '6px' }}>Stock Quantity</label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    placeholder="50"
+                    value={formData.stock}
+                    onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                    className="form-input"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="form-label" style={{ marginBottom: '6px' }}>Image URL</label>
+                <input
+                  type="url"
+                  placeholder="https://images.unsplash.com/photo-..."
+                  value={formData.image}
+                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div>
+                <label className="form-label" style={{ marginBottom: '6px' }}>Description</label>
+                <textarea
+                  required
+                  placeholder="Describe the product specifications and benefits..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="form-input"
+                  rows={3}
+                  style={{ resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', marginTop: '8px', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="btn btn-secondary"
+                  style={{ padding: '10px 18px' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{ padding: '10px 24px' }}
+                >
+                  {modalType === 'create' ? 'Create Product' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteProductId && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' }}>
+          <div className="glass" style={{ padding: '32px', borderRadius: '16px', maxWidth: '400px', width: '90%', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', fontWeight: 700, margin: 0, color: '#ef4444' }}>
+              Delete Product
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: 0, lineHeight: 1.5 }}>
+              Are you sure you want to permanently delete this product? This action will remove it from the catalog and cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
+              <button
+                type="button"
+                onClick={() => setDeleteProductId(null)}
+                className="btn btn-secondary"
+                style={{ padding: '8px 16px' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteConfirm}
+                className="btn btn-primary"
+                style={{ padding: '8px 20px', background: '#ef4444', borderColor: '#ef4444' }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
