@@ -6,13 +6,22 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderService } from './order.service';
 
-// OrderController handles routing for Orders endpoints.
+/**
+ * Controller handling customer purchase orders and sales analytics.
+ * Secures order placements and history queries, and restricts status updates/stats to ADMIN users.
+ */
 @Controller('orders')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
-  // POST /orders
-  // Creates a new customer order. Protected globally by AtGuard.
+  /**
+   * Submits and creates a new order in a pending state.
+   * Decrements database product stock within a secure transaction block.
+   *
+   * @param userId - ID of the authenticated user extracted from the JWT token.
+   * @param dto - CreateOrderDto containing items array and shipping details.
+   * @returns The newly created Order entity.
+   */
   @Post()
   @HttpCode(HttpStatus.CREATED)
   create(
@@ -22,8 +31,14 @@ export class OrderController {
     return this.orderService.createOrder(userId, dto);
   }
 
-  // GET /orders
-  // Retrieves orders: Admins see all orders; regular users see only their own.
+  /**
+   * Fetches order histories.
+   * Returns all system orders for admin accounts, or restricts lookup to the user's own orders.
+   *
+   * @param userId - ID of the calling user.
+   * @param role - Role of the caller (USER or ADMIN).
+   * @returns Array of order records with matching items.
+   */
   @Get()
   @HttpCode(HttpStatus.OK)
   findAll(
@@ -33,8 +48,12 @@ export class OrderController {
     return this.orderService.getOrders(userId, role);
   }
 
-  // GET /orders/admin/stats
-  // Retrieves administrative statistics. Restricted to ADMIN role only.
+  /**
+   * Retrieves overall system sales, average order sizes, categoric splits, and out-of-stock count metrics.
+   * Restricted to admin accounts.
+   *
+   * @returns System analytics indicators object.
+   */
   @Get('admin/stats')
   @Roles('ADMIN')
   @UseGuards(RolesGuard)
@@ -43,8 +62,15 @@ export class OrderController {
     return this.orderService.getAdminStats();
   }
 
-  // GET /orders/:id
-  // Retrieves details of a single order. Validates ownership (unless Admin).
+  /**
+   * Retrieves detail specifications of a single order.
+   * Rejects requests if a customer attempts to query another customer's order.
+   *
+   * @param orderId - UUID of the target order.
+   * @param userId - Calling user ID.
+   * @param role - Calling user role.
+   * @returns The matching Order entity with items list.
+   */
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   findOne(
@@ -55,8 +81,14 @@ export class OrderController {
     return this.orderService.getOrderById(orderId, userId, role);
   }
 
-  // PATCH /orders/:id/status
-  // Updates order status. Restricted to ADMIN role only.
+  /**
+   * Updates status fields of a specific order (e.g. SHIPPED, DELIVERED).
+   * Restricted to admin accounts.
+   *
+   * @param orderId - UUID of the order to update.
+   * @param status - The target status string.
+   * @returns The updated Order entity.
+   */
   @Patch(':id/status')
   @Roles('ADMIN')
   @UseGuards(RolesGuard)

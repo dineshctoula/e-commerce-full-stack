@@ -2,8 +2,10 @@ import { Injectable, BadRequestException, NotFoundException, ForbiddenException 
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 
-// OrderService handles order-related operations.
-// We inject PrismaService to communicate with the SQLite database.
+/**
+ * Service managing customer checkout orders, database transactions, status changes, and admin statistics.
+ * Utilizes SQLite database transactions via Prisma to guarantee inventory stock consistency.
+ */
 @Injectable()
 export class OrderService {
   constructor(private prisma: PrismaService) {}

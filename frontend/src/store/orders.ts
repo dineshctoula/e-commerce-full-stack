@@ -29,16 +29,32 @@ export interface Order {
   items: OrderItem[];
 }
 
-// Interface for Zustand Order Store State
+/**
+ * Orders store state and actions interface.
+ */
 interface OrderState {
+  /** Array of order histories retrieved from backend. */
   orders: Order[];
+  /** True if order-specific API operations are in progress. */
   loading: boolean;
+  /** Admin statistics dataset containing sales totals, breakdowns, charts data. */
   adminStats: any | null;
+  /** True if stats query is running. */
   statsLoading: boolean;
+  /** Server statistics fetching error context text. */
   statsError: string | null;
 
-  // Actions
+  /**
+   * Queries customer order history list.
+   */
   fetchOrders: () => Promise<void>;
+  /**
+   * Places a pending order.
+   *
+   * @param items - Cart products list.
+   * @param shippingDetails - Delivery destination properties.
+   * @returns Resolves to the created Order entity or null on errors.
+   */
   createOrder: (
     items: { productId: string; quantity: number }[],
     shippingDetails: {
@@ -51,10 +67,35 @@ interface OrderState {
       shippingLocalAddress: string;
     }
   ) => Promise<Order | null>;
+  /**
+   * Clears active store error flags.
+   */
   clearError: () => void;
+  /**
+   * Invokes `/payments/create-intent` to register checkout intent with Stripe on backend.
+   *
+   * @param orderId - UUID of the target pending order.
+   * @returns Promise resolving to intent data or null.
+   */
   createPaymentIntent: (orderId: string) => Promise<{ clientSecret: string; paymentIntentId: string } | null>;
+  /**
+   * Confirms payment completion status on backend.
+   *
+   * @param orderId - UUID of order.
+   * @param paymentIntentId - Completed Stripe PaymentIntent ID.
+   * @returns True on successful confirmation; false otherwise.
+   */
   confirmPayment: (orderId: string, paymentIntentId: string) => Promise<boolean>;
+  /**
+   * Admin-only statistics analytics retrieval.
+   */
   fetchAdminStats: () => Promise<void>;
+  /**
+   * Admin-only order status transition modifier.
+   *
+   * @param orderId - Target order UUID.
+   * @param status - Predefined status term.
+   */
   updateOrderStatus: (orderId: string, status: string) => Promise<boolean>;
 }
 

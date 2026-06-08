@@ -4,10 +4,22 @@ import { CreateIntentDto } from './dto/create-intent.dto';
 import { ConfirmPaymentDto } from './dto/confirm-payment.dto';
 import { PaymentService } from './payment.service';
 
+/**
+ * Controller handling payment workflows.
+ * Integrates with Stripe payment intent endpoints to facilitate secure credit card checkouts.
+ */
 @Controller('payments')
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
+  /**
+   * Generates a new Stripe PaymentIntent for a pending customer order.
+   * Returns clientSecret used by Stripe React Elements on frontend.
+   *
+   * @param userId - ID of the calling user.
+   * @param dto - CreateIntentDto containing the target orderId.
+   * @returns Object containing clientSecret and paymentIntentId.
+   */
   @Post('create-intent')
   @HttpCode(HttpStatus.OK)
   createIntent(
@@ -17,6 +29,14 @@ export class PaymentController {
     return this.paymentService.createPaymentIntent(userId, dto.orderId);
   }
 
+  /**
+   * Verifies a completed Stripe PaymentIntent ID status against Stripe servers.
+   * Promotes the target order's status to PROCESSING if successful.
+   *
+   * @param userId - ID of the calling user.
+   * @param dto - ConfirmPaymentDto containing orderId and paymentIntentId.
+   * @returns The updated Order entity.
+   */
   @Post('confirm')
   @HttpCode(HttpStatus.OK)
   confirm(

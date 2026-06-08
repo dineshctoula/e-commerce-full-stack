@@ -8,6 +8,11 @@ import { Elements, CardElement, useStripe, useElements } from '@stripe/react-str
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
 
+/**
+ * CheckoutContent Component.
+ * Implements step-by-step wizard forms (Shipping information, Review, Payment integration, Order complete screen).
+ * Connects with Stripe React hooks to confirm payments securely.
+ */
 const CheckoutContent: React.FC = () => {
   const navigate = useNavigate();
   const { cart, clearCart } = useCartStore();
@@ -539,6 +544,10 @@ const CheckoutContent: React.FC = () => {
   );
 };
 
+/**
+ * Checkout Component.
+ * Wraps CheckoutContent inside Stripe Elements context to load payment input card APIs.
+ */
 export const Checkout: React.FC = () => {
   return (
     <Elements stripe={stripePromise}>
