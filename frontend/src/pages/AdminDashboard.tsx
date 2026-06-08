@@ -23,6 +23,12 @@ import {
   Trash2
 } from 'lucide-react';
 
+/**
+ * AdminDashboard Component.
+ * Accessible only by users holding the `'ADMIN'` role.
+ * Serves as the central console for managing products, tracking customer order statuses,
+ * and analyzing business performance metrics.
+ */
 export const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'stats' | 'orders' | 'products'>('stats');
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);

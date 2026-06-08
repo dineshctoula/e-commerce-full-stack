@@ -451,3 +451,26 @@ Time:        4.251 s
 $ npx tsc --noEmit
 # Completed successfully (exit status 0)
 ```
+
+---
+
+## Day 11 — Code Documentation & Comments
+
+Added detailed class and method JSDoc comments to both backend and frontend codebases, outlining system design, security rules, and state management logic. Split across 5 commits for clean version control.
+
+### Key Documentation Highlights
+
+1. **Authentication System (Commit 1)**:
+   - Documented the backend controllers, strategies (`AtStrategy`, `RtStrategy`), and guards (`AtGuard`, `RtGuard`, `RolesGuard`).
+   - Cleaned up legacy non-English inline comments from strategies.
+   - Documented the frontend Zustand authentication store (`store/auth.ts`) and router wrapper guards (`components/ProtectedRoute.tsx`).
+2. **Product Catalog Module (Commit 2)**:
+   - Documented the backend controllers and services that manage dynamic query pagination and filters.
+   - Documented the frontend products store (`store/products.ts`) and pages (`Catalog.tsx`, `ProductDetail.tsx`).
+3. **Shopping Cart & Wishlist (Commit 3)**:
+   - Documented the persistent Zustand cart store (`store/cart.ts`) and user interface overlays (`CartDrawer.tsx`, `WishlistModal.tsx`).
+4. **Order & Payment Modules (Commit 4)**:
+   - Documented transactional backend order controllers, services, Stripe payment intent integration controllers, and services.
+   - Documented frontend orders store (`store/orders.ts`) and multi-step checkout pages (`Checkout.tsx`).
+5. **Admin Dashboard & App Integration (Commit 5)**:
+   - Documented the full-stack admin console UI (`AdminDashboard.tsx`) and application root routing setup (`App.tsx`).

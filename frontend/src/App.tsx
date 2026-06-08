@@ -15,6 +15,11 @@ import { Checkout } from './pages/Checkout';
 import { CartDrawer } from './components/CartDrawer';
 import { WishlistModal } from './components/WishlistModal';
 
+/**
+ * Root Application Component.
+ * Initializes authentication checks on mount, builds routes to public and guarded pages,
+ * and renders global overlays like the Cart drawer and Wishlist modal.
+ */
 function App() {
   const { checkAuth } = useAuthStore();
 
