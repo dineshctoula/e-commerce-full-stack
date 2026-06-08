@@ -2,6 +2,11 @@ import React from 'react';
 import { useCartStore } from '../store/cart';
 import { X, Trash2, ShoppingCart } from 'lucide-react';
 
+/**
+ * WishlistModal Component.
+ * Overlay popup modal displaying the user's bookmarked product catalog items.
+ * Allows direct add-to-cart migration for in-stock items, and removal triggers.
+ */
 export const WishlistModal: React.FC = () => {
   const {
     wishlist,

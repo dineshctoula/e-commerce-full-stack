@@ -3,6 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useCartStore } from '../store/cart';
 import { X, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
 
+/**
+ * CartDrawer Component.
+ * Slides out from the right window edge. Lists current cart selections,
+ * supports inline item removal, quantity increments/decrements (clamped by database stock availability),
+ * calculates checkout subtotal, VAT tax estimation, grand total sum, and links to checkout.
+ */
 export const CartDrawer: React.FC = () => {
   const {
     cart,

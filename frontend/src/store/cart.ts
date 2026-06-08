@@ -8,38 +8,83 @@ export interface CartItem {
   quantity: number;
 }
 
-// Interface representing the shape of Cart & Wishlist state and operations
+/**
+ * Cart and Wishlist store state and operations interface.
+ */
 interface CartState {
+  /** Array of active cart items with their associated quantities. */
   cart: CartItem[];
+  /** Array of products added to the user's wishlist. */
   wishlist: Product[];
+  /** True if the side cart drawer is currently expanded. */
   isCartOpen: boolean;
+  /** True if the wishlist modal panel is visible. */
   isWishlistOpen: boolean;
 
-  // UI state control actions
+  /**
+   * Toggles the side cart drawer visibility.
+   *
+   * @param isOpen - Target visibility state.
+   */
   setCartOpen: (isOpen: boolean) => void;
+  /**
+   * Toggles the wishlist modal popup visibility.
+   *
+   * @param isOpen - Target visibility state.
+   */
   setWishlistOpen: (isOpen: boolean) => void;
 
-  // Cart operations
+  /**
+   * Adds an item to the shopping cart, clamping to stock.
+   *
+   * @param product - Target Product structure.
+   * @param quantity - Desired count (defaults to 1).
+   */
   addToCart: (product: Product, quantity?: number) => void;
+  /**
+   * Removes a product from the shopping cart.
+   *
+   * @param productId - Target UUID.
+   */
   removeFromCart: (productId: string) => void;
+  /**
+   * Adjusts the purchase quantity of a cart item.
+   *
+   * @param productId - Target product UUID.
+   * @param quantity - Adjusted count.
+   */
   updateQuantity: (productId: string, quantity: number) => void;
+  /**
+   * Empties all items from the shopping cart.
+   */
   clearCart: () => void;
 
-  // Wishlist operations
+  /**
+   * Adds or removes a product from the wishlist array.
+   *
+   * @param product - Target Product record.
+   */
   toggleWishlist: (product: Product) => void;
+  /**
+   * Explicitly removes a product from the wishlist.
+   *
+   * @param productId - Target product UUID.
+   */
   removeFromWishlist: (productId: string) => void;
 }
 
+/**
+ * Zustand hook storing shopping cart and wishlist state structures.
+ * Hooks into LocalStorage middleware to persist checkout sessions across browser reloads.
+ */
 export const useCartStore = create<CartState>()(
   persist(
     (set) => ({
-      // Initial state
       cart: [],
       wishlist: [],
       isCartOpen: false,
       isWishlistOpen: false,
 
-      // UI state control actions
       setCartOpen: (isOpen) => set({ isCartOpen: isOpen }),
       setWishlistOpen: (isOpen) => set({ isWishlistOpen: isOpen }),
 
