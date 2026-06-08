@@ -5,6 +5,11 @@ import type { ProductFilters } from '../store/products';
 import { Search, SlidersHorizontal, ChevronLeft, ChevronRight, Tag, Info, Heart } from 'lucide-react';
 import { useCartStore } from '../store/cart';
 
+/**
+ * Catalog Page Component.
+ * Implements a responsive page featuring a products category sidebar, price selectors, keyword search bar,
+ * a paginated products grid layout, and wishlist interaction triggers.
+ */
 export const Catalog: React.FC = () => {
   const navigate = useNavigate();
   const { products, loading, error, page, totalPages, fetchProducts } = useProductStore();

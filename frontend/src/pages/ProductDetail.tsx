@@ -4,6 +4,12 @@ import { useProductStore } from '../store/products';
 import { ArrowLeft, Info, Heart, ShoppingCart } from 'lucide-react';
 import { useCartStore } from '../store/cart';
 
+/**
+ * ProductDetail Page Component.
+ * Fetches and displays detail specifications (high-resolution image, title, price, descriptions, stock count badge) of a single product.
+ * Provides controls for incrementing/decrementing purchase quantities, adding items to the persistent shopping cart,
+ * and toggling wishlist status.
+ */
 export const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();

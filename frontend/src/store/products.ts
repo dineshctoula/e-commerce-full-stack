@@ -13,38 +13,91 @@ export interface Product {
   updatedAt: string;
 }
 
-// Interface for query parameter filters
+/**
+ * Product filters query contract.
+ */
 export interface ProductFilters {
+  /** Text query term compared against titles and descriptions. */
   search?: string;
+  /** Filter matching category string exactly. */
   category?: string;
+  /** Minimum price boundary filter. */
   minPrice?: string;
+  /** Maximum price boundary filter. */
   maxPrice?: string;
+  /** Current page index, 1-indexed. */
   page?: number;
+  /** Maximum items retrieved per page. */
   limit?: number;
 }
 
-// Interface representing the Product state & operations
+/**
+ * Product state and catalog modifications interface.
+ */
 interface ProductState {
+  /** Array of products retrieved in the current page query. */
   products: Product[];
+  /** Detail data of single selected product. */
   currentProduct: Product | null;
+  /** Total count matching the current filters. */
   total: number;
+  /** Current page index. */
   page: number;
+  /** Maximum page limit. */
   limit: number;
+  /** Calculated total page count matching current filters. */
   totalPages: number;
+  /** True if catalog network requests are running. */
   loading: boolean;
+  /** Contains server-returned error text, if any. */
   error: string | null;
 
-  // Actions
+  /**
+   * Triggers query on `/products` API endpoint.
+   * Updates products catalog results inside the store.
+   *
+   * @param filters - Catalog parameters (e.g. category chips, text search input, bounds).
+   */
   fetchProducts: (filters?: ProductFilters) => Promise<void>;
+  /**
+   * Retrieves single product information from backend using UUID.
+   *
+   * @param id - UUID of product.
+   */
   fetchProductById: (id: string) => Promise<void>;
+  /**
+   * Cleans the active single product details from the store to prevent display flashing.
+   */
   clearCurrentProduct: () => void;
+  /**
+   * Creation form action. Restricted to ADMIN credentials.
+   *
+   * @param product - Specifications properties.
+   * @returns Resolves to true on success, false on errors.
+   */
   createProduct: (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => Promise<boolean>;
+  /**
+   * Update catalog fields action. Restricted to ADMIN credentials.
+   *
+   * @param id - Target UUID to update.
+   * @param product - Changed properties data.
+   * @returns Resolves to true on success, false on errors.
+   */
   updateProduct: (id: string, product: Partial<Omit<Product, 'id' | 'createdAt' | 'updatedAt'>>) => Promise<boolean>;
+  /**
+   * Delete catalog item action. Restricted to ADMIN credentials.
+   *
+   * @param id - Target product UUID.
+   * @returns Resolves to true on success, false on errors.
+   */
   deleteProduct: (id: string) => Promise<boolean>;
 }
 
 const API_BASE = 'http://localhost:3000';
 
+/**
+ * Zustand hook storing global product catalog states and catalog operations.
+ */
 export const useProductStore = create<ProductState>((set) => ({
   products: [],
   currentProduct: null,
