@@ -4,14 +4,23 @@ import { AuthGuard } from '@nestjs/passport';
 import { Observable } from 'rxjs';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
-// AtGuard (Access Token Guard) protects routes by validating the Access Token.
-// It is registered globally in AppModule, but will allow access if the route is decorated with @Public().
+/**
+ * Access Token Guard (AtGuard).
+ * Intercepts incoming requests and verifies JWT access tokens.
+ * Registered globally, but skips validation for handlers or controllers marked with the `@Public()` decorator.
+ */
 @Injectable()
 export class AtGuard extends AuthGuard('jwt') {
   constructor(private reflector: Reflector) {
     super();
   }
 
+  /**
+   * Determines if the current request can proceed.
+   *
+   * @param context - NestJS ExecutionContext of the current request.
+   * @returns True if route is public or token is successfully validated; false otherwise.
+   */
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {

@@ -8,30 +8,62 @@ export interface User {
   role: string; // 'USER' | 'ADMIN'
 }
 
-// Define the authentication store state & actions
+/**
+ * Zustand authentication store state and actions interface.
+ */
 interface AuthState {
+  /** The currently authenticated user object, or null if guest. */
   user: User | null;
+  /** True if the user is verified and authenticated. */
   isAuthenticated: boolean;
+  /** True if an authentication API request is currently running. */
   loading: boolean;
+  /** Contains the latest authentication-related error message, if any. */
   error: string | null;
   
-  // Actions
+  /**
+   * Authenticates user details against the login endpoint.
+   *
+   * @param email - User's email.
+   * @param password - User's password.
+   * @returns Promise resolving to true if login was successful, false otherwise.
+   */
   login: (email: string, password: string) => Promise<boolean>;
+  /**
+   * Registers a new account.
+   *
+   * @param name - Display name of the user.
+   * @param email - Registration email.
+   * @param password - Account password.
+   * @returns Promise resolving to true if registration was successful, false otherwise.
+   */
   register: (name: string, email: string, password: string) => Promise<boolean>;
+  /**
+   * Logs out the user by clearing credentials.
+   */
   logout: () => Promise<void>;
+  /**
+   * Restores user session from cookie on app initialization.
+   */
   checkAuth: () => Promise<void>;
+  /**
+   * Resets the authentication error state.
+   */
   clearError: () => void;
 }
 
 const API_BASE = 'http://localhost:3000';
 
+/**
+ * Zustand hook storing authentication states and core auth routines.
+ * Coordinates credentials synchronization with HttpOnly cookie transport.
+ */
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
   loading: false,
   error: null,
 
-  // Clears any current auth-related error message
   clearError: () => set({ error: null }),
 
   // RESTORE SESSION: Check if the user is already logged in on application mount

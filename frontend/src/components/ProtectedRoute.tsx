@@ -6,7 +6,11 @@ interface RouteProps {
   children: React.ReactNode;
 }
 
-// Global Loading Spinner Component for smooth transitions
+/**
+ * LoadingScreen Component.
+ * Renders a full-sized stylized progress spinner and loading text to prevent
+ * flash-of-unauthenticated-content (FOUC) while restoring credentials from cookie storage.
+ */
 export const LoadingScreen: React.FC = () => {
   return (
     <div style={{
@@ -25,7 +29,11 @@ export const LoadingScreen: React.FC = () => {
   );
 };
 
-// Route wrapper that restricts access to authenticated users only
+/**
+ * ProtectedRoute Wrapper.
+ * Restricts access to children components to authenticated users.
+ * Redirects guests to the `/login` route, passing the requested page location in state for redirect-back on success.
+ */
 export const ProtectedRoute: React.FC<RouteProps> = ({ children }) => {
   const { isAuthenticated, loading } = useAuthStore();
   const location = useLocation();
@@ -42,7 +50,11 @@ export const ProtectedRoute: React.FC<RouteProps> = ({ children }) => {
   return <>{children}</>;
 };
 
-// Route wrapper that restricts access to administrator accounts only
+/**
+ * AdminRoute Wrapper.
+ * Restricts access to administrator accounts only (role === 'ADMIN').
+ * Redirects guests to `/login` and authenticated non-admin users to the root homepage (`/`).
+ */
 export const AdminRoute: React.FC<RouteProps> = ({ children }) => {
   const { user, isAuthenticated, loading } = useAuthStore();
 

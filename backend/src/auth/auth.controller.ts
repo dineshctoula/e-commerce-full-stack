@@ -19,28 +19,43 @@ import { LoginDto } from './dto/login.dto';
 import { RtGuard } from './guards/rt.guard';
 import { OptionalAtGuard } from './guards/optional-at.guard';
 
+/**
+ * Controller responsible for user authentication and session management.
+ * Exposes endpoints for user registration, login, logout, token rotation, and retrieving current session profile.
+ * Implements HTTP-only cookie-based JWT authentication for enhanced XSS/CSRF security.
+ */
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // POST /auth/register
-  // @Public() decorator bypasses the global access token guard.
+  /**
+   * Registers a new user account in the system and signs them in.
+   * Sets HTTP-only cookies containing the access and refresh tokens.
+   *
+   * @param dto - RegisterDto containing email, password, and optionally name and role.
+   * @param res - Express Response object utilized to write HTTP-only cookies.
+   * @returns An object containing public details of the newly created user.
+   */
   @Public()
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   async register(
     @Body() dto: RegisterDto,
-    // By using { passthrough: true }, NestJS allows us to return values normally
-    // while also letting us access the raw Express Response to set cookies.
     @Res({ passthrough: true }) res: Response,
   ) {
     const result = await this.authService.register(dto);
-    // Write access and refresh tokens directly to HTTP-only cookies
     this.setCookies(res, result.tokens);
     return { user: result.user };
   }
 
-  // POST /auth/login
+  /**
+   * Authenticates user credentials and signs them in.
+   * Sets HTTP-only cookies containing the access and refresh tokens.
+   *
+   * @param dto - LoginDto containing email and password.
+   * @param res - Express Response object utilized to write HTTP-only cookies.
+   * @returns An object containing public details of the authenticated user.
+   */
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -53,23 +68,33 @@ export class AuthController {
     return { user: result.user };
   }
 
-  // POST /auth/logout
-  // Since AtGuard is global, this route is protected by default.
+  /**
+   * Logs out the user by clearing local authentication cookies and removing the refresh token hash from the database.
+   *
+   * @param userId - ID of the currently authenticated user extracted from the request token.
+   * @param res - Express Response object utilized to clear cookies.
+   * @returns An object indicating the success status of the logout operation.
+   */
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logout(
-    // Extract user ID from JWT payload attached by Passport
     @GetCurrentUserId() userId: string,
     @Res({ passthrough: true }) res: Response,
   ) {
     await this.authService.logout(userId);
-    // Clear cookies from the client browser
     this.clearCookies(res);
     return { success: true };
   }
 
-  // POST /auth/refresh
-  // We bypass AtGuard using @Public() and instead apply RtGuard to validate the refresh token.
+  /**
+   * Rotates JWT access and refresh tokens when the access token expires.
+   * Validates the refresh token against the database hash and sets updated cookies.
+   *
+   * @param userId - ID of the user requesting token rotation.
+   * @param refreshToken - The current refresh token sent by the client.
+   * @param res - Express Response object utilized to set rotated cookies.
+   * @returns An object containing public details of the user.
+   */
   @Public()
   @UseGuards(RtGuard)
   @Post('refresh')
@@ -80,13 +105,17 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const result = await this.authService.refreshTokens(userId, refreshToken);
-    // Rotate and set new access/refresh token cookies
     this.setCookies(res, result.tokens);
     return { user: result.user };
   }
 
-  // GET /auth/me
-  // Fetches current user profile from the database based on JWT token
+  /**
+   * Fetches the profile details of the currently authenticated user based on the active JWT session.
+   * Uses OptionalAtGuard to avoid throwing exception for guests.
+   *
+   * @param user - Deconstructed payload of the verified access token.
+   * @returns An object containing the user's public profile details, or null if unauthenticated.
+   */
   @Public()
   @UseGuards(OptionalAtGuard)
   @Get('me')
@@ -111,7 +140,13 @@ export class AuthController {
     };
   }
 
-  // Helper method: writes JWT access and refresh tokens to HttpOnly, SameSite cookies.
+  /**
+   * Helper method that configures and writes JWT access and refresh tokens to secure cookies.
+   * Enables HttpOnly, SameSite='lax', and Secure flags to mitigate XSS and CSRF.
+   *
+   * @param res - Express Response object.
+   * @param tokens - Object containing the newly generated access and refresh tokens.
+   */
   private setCookies(
     res: Response,
     tokens: { access_token: string; refresh_token: string },
@@ -135,7 +170,11 @@ export class AuthController {
     });
   }
 
-  // Helper method: clears access and refresh token cookies from browser
+  /**
+   * Helper method that clears auth-related cookies from the client browser.
+   *
+   * @param res - Express Response object.
+   */
   private clearCookies(res: Response) {
     res.clearCookie('access_token');
     res.clearCookie('refresh_token');
