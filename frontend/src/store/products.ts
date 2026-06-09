@@ -1,5 +1,19 @@
 import { create } from 'zustand';
 
+export interface Review {
+  id: string;
+  rating: number;
+  comment: string;
+  userId: string;
+  productId: string;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    name: string | null;
+    email: string;
+  };
+}
+
 // Interface representing a single Product entity from the backend database
 export interface Product {
   id: string;
@@ -11,6 +25,9 @@ export interface Product {
   stock: number;
   createdAt: string;
   updatedAt: string;
+  averageRating?: number;
+  reviewsCount?: number;
+  reviews?: Review[];
 }
 
 /**
