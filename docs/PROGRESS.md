@@ -474,3 +474,66 @@ Added detailed class and method JSDoc comments to both backend and frontend code
    - Documented frontend orders store (`store/orders.ts`) and multi-step checkout pages (`Checkout.tsx`).
 5. **Admin Dashboard & App Integration (Commit 5)**:
    - Documented the full-stack admin console UI (`AdminDashboard.tsx`) and application root routing setup (`App.tsx`).
+
+---
+
+## Day 12 — Ratings & Reviews System
+
+Implemented a full-stack product rating and customer reviews system, enabling authenticated users who are verified purchasers of a product to write reviews and choose rating stars, and administrators or authors to manage/delete them.
+
+### Key Architecture Decisions
+1. **Purchase Validation Logic**:
+   - Built a secure, automated validation check in `ReviewService` querying database orders to verify if the submitting user has an associated, fully paid order containing the product, preventing spam reviews.
+2. **Dynamic Product Ratings Aggregation**:
+   - Integrated dynamic average rating and reviews count calculations into `ProductService.findAll` and `ProductService.findOne` queries using Prisma database mappings.
+3. **Cross-Store Zustand State Management**:
+   - Implemented `useReviewStore` which dynamically updates product statistics within `useProductStore` upon successful review submission or deletion, allowing real-time, responsive UI updates.
+4. **Star-Rating Picker and Breakdown Distribution**:
+   - Developed an interactive star selector widget using Lucide icons with smooth hover scale effects, alongside a summary breakdown showing percentage distributions for each star level.
+
+### Detailed Implementation Steps
+
+#### 1. Database Schema
+* File: `backend/prisma/schema.prisma`
+* Added `Review` model with relations to `User` and `Product`:
+  ```prisma
+  model Review {
+    id        String   @id @default(uuid())
+    rating    Int      // 1 to 5 stars
+    comment   String
+    userId    String
+    productId String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  }
+  ```
+
+#### 2. Backend Services & Controllers (`backend/src/review/`)
+* Service: `ReviewService` - Implements `create` (with verified purchaser validation), `findAllForProduct`, and `remove` (restricted to authors and admins).
+* Controller: `ReviewController` - Maps POST, GET, and DELETE routes securely under authentication guards.
+
+#### 3. Frontend Store & UI components (`frontend/src/store/` & `frontend/src/pages/`)
+* Store: Created `store/reviews.ts` hosting API requests with Zustand cross-store synchronization.
+* Catalog: Integrated star average displays and review counts beneath catalog product titles.
+* ProductDetail: Built breakdown progress bars, list of client reviews, admin/author trash indicators, and interactive review entry form.
+
+### Verification Run Output
+* Backend unit tests pass cleanly:
+  ```bash
+  PASS src/app.controller.spec.ts
+  PASS src/auth/auth.service.spec.ts
+  PASS src/review/review.service.spec.ts
+  PASS src/order/order.service.spec.ts
+  PASS src/payment/payment.service.spec.ts
+  PASS src/product/product.service.spec.ts
+
+  Test Suites: 6 passed, 6 total
+  Tests:       44 passed, 44 total
+  ```
+* Frontend builds and typechecks successfully:
+  ```bash
+  $ npx tsc --noEmit
+  # Completed successfully (exit status 0)
+  ```

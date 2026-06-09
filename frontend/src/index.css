@@ -1315,5 +1315,57 @@ a {
   to { transform: translateX(0); }
 }
 
+/* ==========================================================================
+   Day 12: Ratings & Reviews Styling
+   ========================================================================== */
+
+.reviews-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 48px;
+  margin-bottom: 40px;
+  text-align: left;
+}
+
+@media (max-width: 768px) {
+  .reviews-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+.reviews-breakdown {
+  display: flex;
+  flex-direction: column;
+}
+
+.reviews-form-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.review-card {
+  transition: transform var(--transition-fast), border-color var(--transition-fast);
+}
+
+.review-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.delete-review-btn {
+  transition: color var(--transition-fast), transform var(--transition-fast);
+}
+
+.delete-review-btn:hover {
+  color: var(--danger-color) !important;
+  transform: scale(1.1);
+}
+
+/* Star selection hover micro-animation */
+.reviews-form-wrapper button:hover svg {
+  transform: scale(1.15);
+}
+
 
 

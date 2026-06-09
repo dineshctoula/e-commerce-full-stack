@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProductStore } from '../store/products';
 import type { ProductFilters } from '../store/products';
-import { Search, SlidersHorizontal, ChevronLeft, ChevronRight, Tag, Info, Heart } from 'lucide-react';
+import { Search, SlidersHorizontal, ChevronLeft, ChevronRight, Tag, Info, Heart, Star } from 'lucide-react';
 import { useCartStore } from '../store/cart';
 
 /**
@@ -240,6 +240,27 @@ export const Catalog: React.FC = () => {
 
                     <div className="product-card-body">
                       <h3 className="product-card-title">{product.title}</h3>
+                      
+                      {/* Rating Stars */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}>
+                        <div style={{ display: 'flex', gap: '2px' }}>
+                          {[1, 2, 3, 4, 5].map((star) => {
+                            const isFilled = star <= Math.round(product.averageRating || 0);
+                            return (
+                              <Star
+                                key={star}
+                                size={13}
+                                fill={isFilled ? '#fbbf24' : 'none'}
+                                color={isFilled ? '#fbbf24' : 'var(--text-secondary)'}
+                              />
+                            );
+                          })}
+                        </div>
+                        <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                          ({product.reviewsCount || 0})
+                        </span>
+                      </div>
+
                       <p className="product-card-desc">
                         {product.description.length > 80
                           ? `${product.description.slice(0, 80)}...`
