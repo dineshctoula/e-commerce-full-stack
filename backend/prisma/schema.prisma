@@ -24,6 +24,10 @@ model User {
   // A user can place multiple orders over time.
   // One-to-many relationship with Order model.
   orders    Order[]
+
+  // A user can write multiple reviews.
+  // One-to-many relationship with Review model.
+  reviews   Review[]
 }
 
 model Product {
@@ -40,6 +44,10 @@ model Product {
   // A product can be part of multiple order line-items across different orders.
   // One-to-many relationship with OrderItem model.
   orderItems  OrderItem[]
+
+  // A product can have multiple reviews.
+  // One-to-many relationship with Review model.
+  reviews     Review[]
 }
 
 // Order model tracks high-level information about a customer purchase.
@@ -74,6 +82,21 @@ model OrderItem {
   product   Product  @relation(fields: [productId], references: [id])
   quantity  Int      // The quantity of this product purchased
   price     Float    // Snapshot of the price per unit at the time of order placement
+}
+
+// Review model stores user feedback and numeric rating for a product.
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int      // 1 to 5 stars
+  comment   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, productId]) // One review per product per user
 }
 
 
