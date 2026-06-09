@@ -8,9 +8,10 @@ import { AtGuard } from './auth/guards/at.guard';
 import { ProductModule } from './product/product.module';
 import { OrderModule } from './order/order.module';
 import { PaymentModule } from './payment/payment.module';
+import { ReviewModule } from './review/review.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, ProductModule, OrderModule, PaymentModule],
+  imports: [PrismaModule, AuthModule, ProductModule, OrderModule, PaymentModule, ReviewModule],
   controllers: [AppController],
   providers: [
     AppService,
