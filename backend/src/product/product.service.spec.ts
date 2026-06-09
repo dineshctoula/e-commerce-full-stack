@@ -87,7 +87,13 @@ describe('ProductService', () => {
       expect(mockPrismaService.product.findMany).toHaveBeenCalled();
       expect(mockPrismaService.product.count).toHaveBeenCalled();
       expect(result).toEqual({
-        products,
+        products: [
+          {
+            ...products[0],
+            averageRating: 0,
+            reviewsCount: 0,
+          },
+        ],
         total: 1,
         page: 1,
         limit: 10,
@@ -105,8 +111,28 @@ describe('ProductService', () => {
 
       expect(mockPrismaService.product.findUnique).toHaveBeenCalledWith({
         where: { id: 'prod-1' },
+        include: {
+          reviews: {
+            include: {
+              user: {
+                select: {
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+            orderBy: {
+              createdAt: 'desc',
+            },
+          },
+        },
       });
-      expect(result).toEqual(product);
+      expect(result).toEqual({
+        ...product,
+        reviews: [],
+        averageRating: 0,
+        reviewsCount: 0,
+      });
     });
 
     it('should throw NotFoundException if product not found', async () => {

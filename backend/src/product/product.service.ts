@@ -95,15 +95,45 @@ export class ProductService {
         where,
         skip,
         take: limitNumber,
+        include: {
+          reviews: {
+            select: {
+              rating: true,
+            },
+          },
+        },
         orderBy: { createdAt: 'desc' }, // Show newest items first
       }),
       this.prisma.product.count({ where }),
     ]);
 
+    const productsWithRatings = products.map((product) => {
+      const reviews = product.reviews || [];
+      const reviewsCount = reviews.length;
+      const averageRating =
+        reviewsCount > 0
+          ? Number(
+              (
+                reviews.reduce((sum, r) => sum + r.rating, 0) /
+                reviewsCount
+              ).toFixed(1),
+            )
+          : 0;
+
+      // Extract reviews array to minimize response payload size
+      const { reviews: _, ...productData } = product as any;
+
+      return {
+        ...productData,
+        averageRating,
+        reviewsCount,
+      };
+    });
+
     const totalPages = Math.ceil(total / limitNumber);
 
     return {
-      products,
+      products: productsWithRatings,
       total,
       page: pageNumber,
       limit: limitNumber,
@@ -121,13 +151,45 @@ export class ProductService {
   async findOne(id: string) {
     const product = await this.prisma.product.findUnique({
       where: { id },
+      include: {
+        reviews: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      },
     });
 
     if (!product) {
       throw new NotFoundException(`Product with ID "${id}" not found`);
     }
 
-    return product;
+    const reviews = product.reviews || [];
+    const reviewsCount = reviews.length;
+    const averageRating =
+      reviewsCount > 0
+        ? Number(
+            (
+              reviews.reduce((sum, r) => sum + r.rating, 0) /
+              reviewsCount
+            ).toFixed(1),
+          )
+        : 0;
+
+    return {
+      ...product,
+      reviews,
+      averageRating,
+      reviewsCount,
+    };
   }
 
   /**
