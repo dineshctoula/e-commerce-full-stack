@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   Res,
   UseGuards,
@@ -16,6 +17,8 @@ import { GetCurrentUserId } from './decorators/get-current-user-id.decorator';
 import { Public } from './decorators/public.decorator';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { RtGuard } from './guards/rt.guard';
 import { OptionalAtGuard } from './guards/optional-at.guard';
 
@@ -138,6 +141,30 @@ export class AuthController {
         role: dbUser.role,
       },
     };
+  }
+
+  /**
+   * Updates user profile (name and/or email).
+   */
+  @Patch('profile')
+  @HttpCode(HttpStatus.OK)
+  async updateProfile(
+    @GetCurrentUserId() userId: string,
+    @Body() dto: UpdateProfileDto,
+  ) {
+    return this.authService.updateProfile(userId, dto);
+  }
+
+  /**
+   * Changes user password securely.
+   */
+  @Post('change-password')
+  @HttpCode(HttpStatus.OK)
+  async changePassword(
+    @GetCurrentUserId() userId: string,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    return this.authService.changePassword(userId, dto);
   }
 
   /**
