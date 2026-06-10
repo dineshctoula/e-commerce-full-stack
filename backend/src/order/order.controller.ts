@@ -99,4 +99,24 @@ export class OrderController {
   ) {
     return this.orderService.updateOrderStatus(orderId, status);
   }
+
+  /**
+   * Cancels a customer order.
+   * Restores product stock quantities dynamically in a database transaction.
+   * Rejects request if the caller is not the owner of the order and not an ADMIN.
+   *
+   * @param orderId - UUID of the target order.
+   * @param userId - Calling user ID.
+   * @param role - Calling user role.
+   * @returns The updated Order entity.
+   */
+  @Patch(':id/cancel')
+  @HttpCode(HttpStatus.OK)
+  cancel(
+    @Param('id') orderId: string,
+    @GetCurrentUserId() userId: string,
+    @GetCurrentUser('role') role: string,
+  ) {
+    return this.orderService.cancelOrder(orderId, userId, role);
+  }
 }

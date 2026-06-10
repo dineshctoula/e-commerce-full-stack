@@ -5,7 +5,7 @@ import { User, Mail, Shield, CheckCircle, Calendar, ShoppingBag, MapPin, Lock, S
 
 export const Profile: React.FC = () => {
   const { user, updateProfile, changePassword } = useAuthStore();
-  const { orders, fetchOrders, loading } = useOrderStore();
+  const { orders, fetchOrders, loading, cancelOrder } = useOrderStore();
 
   const [activeTab, setActiveTab] = useState<'details' | 'security'>('details');
   const [isEditing, setIsEditing] = useState(false);
@@ -68,6 +68,18 @@ export const Profile: React.FC = () => {
       setConfirmPassword('');
     } else {
       setFormError(result.error || 'Failed to change password.');
+    }
+  };
+
+  const handleCancelOrder = async (orderId: string) => {
+    if (!window.confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
+      return;
+    }
+    const success = await cancelOrder(orderId);
+    if (success) {
+      alert('Order cancelled successfully.');
+    } else {
+      alert('Failed to cancel order.');
     }
   };
 
@@ -404,9 +416,23 @@ export const Profile: React.FC = () => {
                         <span style={{ display: 'block', marginTop: '2px' }}><strong>Contact:</strong> {order.shippingEmail} | {order.shippingPhone}</span>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: '14px', fontWeight: 700, borderTop: '1px solid rgba(255,255,255,0.02)', paddingTop: '8px' }}>
-                      <span style={{ color: 'var(--text-secondary)', marginRight: '6px', fontWeight: 500 }}>Grand Total:</span>
-                      <span className="accent-color">${order.totalAmount.toFixed(2)}</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '14px', fontWeight: 700, borderTop: '1px solid rgba(255,255,255,0.02)', paddingTop: '8px' }}>
+                      <div>
+                        {(order.status === 'PENDING' || order.status === 'PROCESSING') && (
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            style={{ padding: '6px 12px', fontSize: '12px', borderColor: 'var(--error-color)', color: '#ef4444' }}
+                            onClick={() => handleCancelOrder(order.id)}
+                          >
+                            Cancel Order
+                          </button>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: 'var(--text-secondary)', marginRight: '6px', fontWeight: 500 }}>Grand Total:</span>
+                        <span className="accent-color">${order.totalAmount.toFixed(2)}</span>
+                      </div>
                     </div>
                   </div>
 

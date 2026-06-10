@@ -97,6 +97,12 @@ interface OrderState {
    * @param status - Predefined status term.
    */
   updateOrderStatus: (orderId: string, status: string) => Promise<boolean>;
+  /**
+   * Cancels a customer order.
+   *
+   * @param orderId - UUID of the target order to cancel.
+   */
+  cancelOrder: (orderId: string) => Promise<boolean>;
 }
 
 const API_BASE = 'http://localhost:3000';
@@ -274,6 +280,43 @@ export const useOrderStore = create<OrderState>((set) => ({
       return true;
     } catch (err: any) {
       set({ error: err.message || 'Error updating order status.' });
+      return false;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  cancelOrder: async (orderId) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await fetch(`${API_BASE}/orders/${orderId}/cancel`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to cancel order.');
+      }
+      set((state) => ({
+        orders: state.orders.map((o) => (o.id === orderId ? data : o)),
+        error: null,
+      }));
+      set((state) => {
+        if (!state.adminStats) return {};
+        const updatedRecent = state.adminStats.recentOrders.map((o: any) =>
+          o.id === orderId ? { ...o, status: 'CANCELLED' } : o
+        );
+        return {
+          adminStats: {
+            ...state.adminStats,
+            recentOrders: updatedRecent,
+          },
+        };
+      });
+      return true;
+    } catch (err: any) {
+      set({ error: err.message || 'Error cancelling order.' });
       return false;
     } finally {
       set({ loading: false });

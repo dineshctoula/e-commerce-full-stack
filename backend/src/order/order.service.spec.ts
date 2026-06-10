@@ -310,4 +310,62 @@ describe('OrderService', () => {
       expect(result.recentOrders.length).toBe(2);
     });
   });
+
+  describe('cancelOrder', () => {
+    const mockOrderForCancel = {
+      id: 'order-cancel-123',
+      userId: 'user-123',
+      status: 'PENDING',
+      items: [
+        { productId: 'prod-1', quantity: 2 },
+      ],
+    };
+
+    it('should cancel the order and restore stock successfully', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(mockOrderForCancel);
+      mockPrismaService.order.update.mockResolvedValueOnce({
+        ...mockOrderForCancel,
+        status: 'CANCELLED',
+      });
+      mockPrismaService.product.update.mockResolvedValueOnce({ id: 'prod-1', stock: 10 });
+
+      const result = await service.cancelOrder('order-cancel-123', 'user-123', 'USER');
+
+      expect(mockPrismaService.order.findUnique).toHaveBeenCalledWith({
+        where: { id: 'order-cancel-123' },
+        include: { items: true },
+      });
+      expect(result.status).toBe('CANCELLED');
+    });
+
+    it('should throw ForbiddenException if not owner and not ADMIN', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(mockOrderForCancel);
+
+      await expect(
+        service.cancelOrder('order-cancel-123', 'different-user', 'USER'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw BadRequestException if order is already cancelled', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce({
+        ...mockOrderForCancel,
+        status: 'CANCELLED',
+      });
+
+      await expect(
+        service.cancelOrder('order-cancel-123', 'user-123', 'USER'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException if order is already delivered', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce({
+        ...mockOrderForCancel,
+        status: 'DELIVERED',
+      });
+
+      await expect(
+        service.cancelOrder('order-cancel-123', 'user-123', 'USER'),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
 });

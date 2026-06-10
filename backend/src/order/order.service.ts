@@ -188,6 +188,10 @@ export class OrderService {
       throw new NotFoundException(`Order with ID "${orderId}" not found`);
     }
 
+    if (formattedStatus === 'CANCELLED') {
+      return this.cancelOrder(orderId, order.userId, 'ADMIN');
+    }
+
     return this.prisma.order.update({
       where: { id: orderId },
       data: {
@@ -200,6 +204,68 @@ export class OrderService {
           },
         },
       },
+    });
+  }
+
+  /**
+   * Cancels a customer order.
+   * - Accessible by ADMIN or the owner of the order.
+   * - Restores stock counts for all products in the order using a transaction.
+   * - Restricts cancellation to PENDING or PROCESSING orders.
+   */
+  async cancelOrder(orderId: string, userId: string, role: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        items: true,
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order with ID "${orderId}" not found`);
+    }
+
+    // Role or owner verification
+    if (role !== 'ADMIN' && order.userId !== userId) {
+      throw new ForbiddenException('You do not have permission to cancel this order');
+    }
+
+    if (order.status === 'CANCELLED') {
+      throw new BadRequestException('Order is already cancelled');
+    }
+
+    if (order.status === 'DELIVERED' || order.status === 'SHIPPED') {
+      throw new BadRequestException(`Cannot cancel order because it is already ${order.status.toLowerCase()}`);
+    }
+
+    // Database transaction to update order status and restore stock
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Update order status to CANCELLED
+      const updatedOrder = await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'CANCELLED' },
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+
+      // 2. Increment product stocks
+      for (const item of order.items) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: {
+            stock: {
+              increment: item.quantity,
+            },
+          },
+        });
+      }
+
+      return updatedOrder;
     });
   }
 
