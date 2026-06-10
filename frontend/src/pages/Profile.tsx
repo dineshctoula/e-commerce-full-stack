@@ -1,11 +1,32 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '../store/auth';
 import { useOrderStore } from '../store/orders';
-import { User, Mail, Shield, CheckCircle, Calendar, ShoppingBag, MapPin } from 'lucide-react';
+import { User, Mail, Shield, CheckCircle, Calendar, ShoppingBag, MapPin, Lock, Settings } from 'lucide-react';
 
 export const Profile: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user, updateProfile, changePassword } = useAuthStore();
   const { orders, fetchOrders, loading } = useOrderStore();
+
+  const [activeTab, setActiveTab] = useState<'details' | 'security'>('details');
+  const [isEditing, setIsEditing] = useState(false);
+  const [profileName, setProfileName] = useState(user?.name || '');
+  const [profileEmail, setProfileEmail] = useState(user?.email || '');
+
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const [formLoading, setFormLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [formSuccess, setFormSuccess] = useState<string | null>(null);
+
+  // Sync state if user data loads/updates
+  useEffect(() => {
+    if (user) {
+      setProfileName(user.name || '');
+      setProfileEmail(user.email || '');
+    }
+  }, [user]);
 
   // Load user orders history when the component mounts
   useEffect(() => {
@@ -13,6 +34,42 @@ export const Profile: React.FC = () => {
       void fetchOrders();
     }
   }, [user, fetchOrders]);
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormLoading(true);
+    setFormError(null);
+    setFormSuccess(null);
+    const result = await updateProfile(profileName, profileEmail);
+    setFormLoading(false);
+    if (result.success) {
+      setFormSuccess('Profile updated successfully.');
+      setIsEditing(false);
+    } else {
+      setFormError(result.error || 'Failed to update profile.');
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setFormError('New passwords do not match.');
+      return;
+    }
+    setFormLoading(true);
+    setFormError(null);
+    setFormSuccess(null);
+    const result = await changePassword(currentPassword, newPassword);
+    setFormLoading(false);
+    if (result.success) {
+      setFormSuccess('Password changed successfully.');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } else {
+      setFormError(result.error || 'Failed to change password.');
+    }
+  };
 
   if (!user) {
     return (
@@ -65,58 +122,210 @@ export const Profile: React.FC = () => {
             </div>
           </div>
 
-          {/* Profile Details List */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {/* User Name */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ color: 'var(--accent-color)' }}><User size={18} /></div>
-              <div>
-                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Full Name</div>
-                <div style={{ fontSize: '15px', fontWeight: 600 }}>{user.name || 'Not provided'}</div>
-              </div>
-            </div>
-
-            {/* User Email */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ color: 'var(--accent-color)' }}><Mail size={18} /></div>
-              <div>
-                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Email Address</div>
-                <div style={{ fontSize: '15px', fontWeight: 600 }}>{user.email}</div>
-              </div>
-            </div>
-
-            {/* User Role */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ color: 'var(--accent-color)' }}><Shield size={18} /></div>
-              <div>
-                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Account Permissions</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                  <span style={{
-                    fontSize: '11px',
-                    background: user.role === 'ADMIN' ? 'var(--accent-color)' : 'var(--accent-dim)',
-                    color: user.role === 'ADMIN' ? '#0b0c10' : 'var(--accent-color)',
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    fontWeight: 700
-                  }}>
-                    {user.role}
-                  </span>
-                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <CheckCircle size={12} style={{ color: 'var(--success-color)' }} /> Verified
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Account ID */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '20px', marginTop: '4px' }}>
-              <div style={{ color: 'var(--text-secondary)' }}><Calendar size={18} /></div>
-              <div>
-                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Client ID</div>
-                <div style={{ fontSize: '11px', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{user.id}</div>
-              </div>
-            </div>
+          {/* Tabs Navigation */}
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+            <button
+              type="button"
+              className={`btn ${activeTab === 'details' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ padding: '8px 16px', fontSize: '13px', flex: 1 }}
+              onClick={() => {
+                setActiveTab('details');
+                setFormError(null);
+                setFormSuccess(null);
+              }}
+            >
+              <Settings size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} /> Details
+            </button>
+            <button
+              type="button"
+              className={`btn ${activeTab === 'security' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ padding: '8px 16px', fontSize: '13px', flex: 1 }}
+              onClick={() => {
+                setActiveTab('security');
+                setFormError(null);
+                setFormSuccess(null);
+              }}
+            >
+              <Lock size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} /> Security
+            </button>
           </div>
+
+          {/* Form Message Banners */}
+          {formError && (
+            <div className="error-alert" style={{ marginBottom: '16px', padding: '10px 14px', borderRadius: '4px', fontSize: '13px' }}>
+              {formError}
+            </div>
+          )}
+          {formSuccess && (
+            <div className="success-alert" style={{ marginBottom: '16px', padding: '10px 14px', borderRadius: '4px', fontSize: '13px', backgroundColor: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', color: '#10b981' }}>
+              {formSuccess}
+            </div>
+          )}
+
+          {activeTab === 'details' ? (
+            <div>
+              {isEditing ? (
+                <form onSubmit={handleUpdateProfile} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="profile-name">Full Name</label>
+                    <input
+                      id="profile-name"
+                      type="text"
+                      className="form-input"
+                      value={profileName}
+                      onChange={(e) => setProfileName(e.target.value)}
+                      required
+                      placeholder="Your Name"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="profile-email">Email Address</label>
+                    <input
+                      id="profile-email"
+                      type="email"
+                      className="form-input"
+                      value={profileEmail}
+                      onChange={(e) => setProfileEmail(e.target.value)}
+                      required
+                      placeholder="email@example.com"
+                    />
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      style={{ flex: 1, padding: '10px' }}
+                      disabled={formLoading}
+                    >
+                      {formLoading ? <span className="loading-spinner" style={{ width: '16px', height: '16px' }} /> : 'Save Changes'}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{ flex: 1, padding: '10px' }}
+                      onClick={() => {
+                        setIsEditing(false);
+                        setProfileName(user.name || '');
+                        setProfileEmail(user.email || '');
+                        setFormError(null);
+                        setFormSuccess(null);
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {/* User Name */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ color: 'var(--accent-color)' }}><User size={18} /></div>
+                    <div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Full Name</div>
+                      <div style={{ fontSize: '15px', fontWeight: 600 }}>{user.name || 'Not provided'}</div>
+                    </div>
+                  </div>
+
+                  {/* User Email */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ color: 'var(--accent-color)' }}><Mail size={18} /></div>
+                    <div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Email Address</div>
+                      <div style={{ fontSize: '15px', fontWeight: 600 }}>{user.email}</div>
+                    </div>
+                  </div>
+
+                  {/* User Role */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ color: 'var(--accent-color)' }}><Shield size={18} /></div>
+                    <div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Account Permissions</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                        <span style={{
+                          fontSize: '11px',
+                          background: user.role === 'ADMIN' ? 'var(--accent-color)' : 'var(--accent-dim)',
+                          color: user.role === 'ADMIN' ? '#0b0c10' : 'var(--accent-color)',
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          fontWeight: 700
+                        }}>
+                          {user.role}
+                        </span>
+                        <span style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <CheckCircle size={12} style={{ color: 'var(--success-color)' }} /> Verified
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Account ID */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '20px', marginTop: '4px' }}>
+                    <div style={{ color: 'var(--text-secondary)' }}><Calendar size={18} /></div>
+                    <div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Client ID</div>
+                      <div style={{ fontSize: '11px', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{user.id}</div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ marginTop: '12px', width: '100%', padding: '10px' }}
+                    onClick={() => setIsEditing(true)}
+                  >
+                    Edit Profile Details
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="current-password">Current Password</label>
+                <input
+                  id="current-password"
+                  type="password"
+                  className="form-input"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  required
+                  placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="new-password">New Password</label>
+                <input
+                  id="new-password"
+                  type="password"
+                  className="form-input"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  placeholder="At least 6 characters"
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="confirm-password">Confirm New Password</label>
+                <input
+                  id="confirm-password"
+                  type="password"
+                  className="form-input"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  placeholder="At least 6 characters"
+                />
+              </div>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                style={{ marginTop: '12px', width: '100%', padding: '10px' }}
+                disabled={formLoading}
+              >
+                {formLoading ? <span className="loading-spinner" style={{ width: '16px', height: '16px' }} /> : 'Change Password'}
+              </button>
+            </form>
+          )}
         </section>
 
         {/* Right Side Column: Order History list */}

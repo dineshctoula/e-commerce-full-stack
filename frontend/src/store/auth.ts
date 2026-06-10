@@ -50,6 +50,14 @@ interface AuthState {
    * Resets the authentication error state.
    */
   clearError: () => void;
+  /**
+   * Updates the user's name and/or email profile information.
+   */
+  updateProfile: (name?: string, email?: string) => Promise<{ success: boolean; error?: string }>;
+  /**
+   * Securely changes the user's password.
+   */
+  changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const API_BASE = 'http://localhost:3000';
@@ -167,6 +175,68 @@ export const useAuthStore = create<AuthState>((set) => ({
       // Fail silently if backend logout endpoint fails, still clear local store state
     } finally {
       set({ user: null, isAuthenticated: false, error: null, loading: false });
+    }
+  },
+
+  // UPDATE PROFILE: Updates user name and/or email
+  updateProfile: async (name, email) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await fetch(`${API_BASE}/auth/profile`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email }),
+        credentials: 'include',
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        const errMsg = Array.isArray(data.message) 
+          ? data.message.join(', ') 
+          : (data.message || 'Profile update failed.');
+        throw new Error(errMsg);
+      }
+
+      set({ user: data, error: null });
+      return { success: true };
+    } catch (err: any) {
+      const errMsg = err.message || 'Something went wrong.';
+      set({ error: errMsg });
+      return { success: false, error: errMsg };
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  // CHANGE PASSWORD: Changes password securely
+  changePassword: async (currentPassword, newPassword) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await fetch(`${API_BASE}/auth/change-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+        credentials: 'include',
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        const errMsg = Array.isArray(data.message) 
+          ? data.message.join(', ') 
+          : (data.message || 'Password change failed.');
+        throw new Error(errMsg);
+      }
+
+      set({ error: null });
+      return { success: true };
+    } catch (err: any) {
+      const errMsg = err.message || 'Something went wrong.';
+      set({ error: errMsg });
+      return { success: false, error: errMsg };
+    } finally {
+      set({ loading: false });
     }
   },
 }));
