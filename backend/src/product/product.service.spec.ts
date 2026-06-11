@@ -100,6 +100,32 @@ describe('ProductService', () => {
         totalPages: 1,
       });
     });
+
+    it('should support sorting by price asc', async () => {
+      mockPrismaService.product.findMany.mockResolvedValue([]);
+      mockPrismaService.product.count.mockResolvedValue(0);
+
+      await service.findAll({ sortBy: 'price', sortOrder: 'asc' });
+
+      expect(mockPrismaService.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: { price: 'asc' },
+        }),
+      );
+    });
+
+    it('should support sorting by average rating desc', async () => {
+      mockPrismaService.product.findMany.mockResolvedValue([]);
+      mockPrismaService.product.count.mockResolvedValue(0);
+
+      await service.findAll({ sortBy: 'rating', sortOrder: 'desc' });
+
+      expect(mockPrismaService.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: { reviews: { _avg: { rating: 'desc' } } },
+        }),
+      );
+    });
   });
 
   describe('findOne', () => {

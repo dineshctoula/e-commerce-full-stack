@@ -11,6 +11,8 @@ export interface ProductQueryFilters {
   maxPrice?: number;
   page?: number;
   limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 /**
@@ -55,6 +57,8 @@ export class ProductService {
       maxPrice,
       page = 1,
       limit = 10,
+      sortBy,
+      sortOrder,
     } = filters;
 
     const where: Prisma.ProductWhereInput = {};
@@ -89,6 +93,21 @@ export class ProductService {
     const limitNumber = Math.max(1, Number(limit));
     const skip = (pageNumber - 1) * limitNumber;
 
+    let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: 'desc' };
+
+    if (sortBy) {
+      const order = sortOrder === 'asc' ? 'asc' : 'desc';
+      if (sortBy === 'price') {
+        orderBy = { price: order };
+      } else if (sortBy === 'title') {
+        orderBy = { title: order };
+      } else if (sortBy === 'rating') {
+        orderBy = { reviews: { _avg: { rating: order } } };
+      } else if (sortBy === 'newest') {
+        orderBy = { createdAt: 'desc' };
+      }
+    }
+
     // Concurrently fetch products chunk and calculate total matches count
     const [products, total] = await Promise.all([
       this.prisma.product.findMany({
@@ -102,7 +121,7 @@ export class ProductService {
             },
           },
         },
-        orderBy: { createdAt: 'desc' }, // Show newest items first
+        orderBy,
       }),
       this.prisma.product.count({ where }),
     ]);

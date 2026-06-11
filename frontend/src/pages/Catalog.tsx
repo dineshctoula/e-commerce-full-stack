@@ -24,12 +24,13 @@ export const Catalog: React.FC = () => {
   const [categoryVal, setCategoryVal] = useState('');
   const [minPriceVal, setMinPriceVal] = useState('');
   const [maxPriceVal, setMaxPriceVal] = useState('');
+  const [sortByVal, setSortByVal] = useState('newest');
 
   // Available categories in our seed and backend
   const categories = ['All', 'Accessories', 'Electronics', 'Clothing', 'Home & Kitchen'];
 
   // Trigger search requests using current filters
-  const applyFilters = useCallback((targetPage?: number) => {
+  const applyFilters = useCallback((targetPage?: number, currentSortByVal?: string) => {
     const filters: ProductFilters = {
       page: targetPage ?? 1,
       limit: 8,
@@ -40,8 +41,29 @@ export const Catalog: React.FC = () => {
     if (minPriceVal) filters.minPrice = minPriceVal;
     if (maxPriceVal) filters.maxPrice = maxPriceVal;
 
+    const sortTerm = currentSortByVal ?? sortByVal;
+    if (sortTerm === 'newest') {
+      filters.sortBy = 'newest';
+      filters.sortOrder = 'desc';
+    } else if (sortTerm === 'price-asc') {
+      filters.sortBy = 'price';
+      filters.sortOrder = 'asc';
+    } else if (sortTerm === 'price-desc') {
+      filters.sortBy = 'price';
+      filters.sortOrder = 'desc';
+    } else if (sortTerm === 'rating-desc') {
+      filters.sortBy = 'rating';
+      filters.sortOrder = 'desc';
+    } else if (sortTerm === 'title-asc') {
+      filters.sortBy = 'title';
+      filters.sortOrder = 'asc';
+    } else if (sortTerm === 'title-desc') {
+      filters.sortBy = 'title';
+      filters.sortOrder = 'desc';
+    }
+
     void fetchProducts(filters);
-  }, [searchVal, categoryVal, minPriceVal, maxPriceVal, fetchProducts]);
+  }, [searchVal, categoryVal, minPriceVal, maxPriceVal, sortByVal, fetchProducts]);
 
   // Initial load
   useEffect(() => {
@@ -53,13 +75,20 @@ export const Catalog: React.FC = () => {
     applyFilters(1);
   };
 
+  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newVal = e.target.value;
+    setSortByVal(newVal);
+    applyFilters(1, newVal);
+  };
+
   const handleClearFilters = () => {
     setSearchVal('');
     setCategoryVal('');
     setMinPriceVal('');
     setMaxPriceVal('');
+    setSortByVal('newest');
     // Call fetchProducts directly with clean parameters to bypass state update delays
-    void fetchProducts({ page: 1, limit: 8 });
+    void fetchProducts({ page: 1, limit: 8, sortBy: 'newest', sortOrder: 'desc' });
   };
 
   const handlePageChange = (newPage: number) => {
@@ -154,6 +183,25 @@ export const Catalog: React.FC = () => {
                 min="0"
               />
             </div>
+          </div>
+
+          {/* Sort Selection Filter */}
+          <div className="filter-section">
+            <label className="form-label" htmlFor="catalog-sort">Sort By</label>
+            <select
+              id="catalog-sort"
+              className="form-input"
+              value={sortByVal}
+              onChange={handleSortChange}
+              style={{ backgroundColor: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-primary)' }}
+            >
+              <option value="newest" style={{ background: '#121212' }}>Newest Arrivals</option>
+              <option value="price-asc" style={{ background: '#121212' }}>Price: Low to High</option>
+              <option value="price-desc" style={{ background: '#121212' }}>Price: High to Low</option>
+              <option value="rating-desc" style={{ background: '#121212' }}>Highest Rated</option>
+              <option value="title-asc" style={{ background: '#121212' }}>Name: A to Z</option>
+              <option value="title-desc" style={{ background: '#121212' }}>Name: Z to A</option>
+            </select>
           </div>
 
           <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>

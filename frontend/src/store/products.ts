@@ -46,6 +46,10 @@ export interface ProductFilters {
   page?: number;
   /** Maximum items retrieved per page. */
   limit?: number;
+  /** Sort by property */
+  sortBy?: string;
+  /** Sort order direction */
+  sortOrder?: 'asc' | 'desc';
 }
 
 /**
@@ -139,6 +143,8 @@ export const useProductStore = create<ProductState>((set) => ({
       if (filters.category) queryParams.append('category', filters.category);
       if (filters.minPrice) queryParams.append('minPrice', filters.minPrice);
       if (filters.maxPrice) queryParams.append('maxPrice', filters.maxPrice);
+      if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
+      if (filters.sortOrder) queryParams.append('sortOrder', filters.sortOrder);
       
       // Page and limit defaults
       const pageVal = filters.page || 1;
