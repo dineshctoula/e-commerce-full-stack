@@ -22,7 +22,16 @@ export const ProductDetail: React.FC = () => {
   const { addToCart, wishlist, toggleWishlist } = useCartStore();
   const { user, isAuthenticated } = useAuthStore();
   const { orders, fetchOrders } = useOrderStore();
-  const { submitReview, deleteReview, loading: reviewSubmitLoading, error: reviewError } = useReviewStore();
+  const {
+    submitReview,
+    deleteReview,
+    loading: reviewSubmitLoading,
+    error: reviewError,
+    canReview,
+    eligibilityReason,
+    eligibilityLoading,
+    checkEligibility,
+  } = useReviewStore();
 
   // Local state for quantity selector
   const [quantity, setQuantity] = useState(1);
@@ -36,14 +45,6 @@ export const ProductDetail: React.FC = () => {
   const isWishlisted = currentProduct
     ? wishlist.some((item) => item.id === currentProduct.id)
     : false;
-
-  // Check if user is a verified purchaser of this product (temporarily set to true for easy review testing without payment checkout)
-  const hasPurchased = true;
-
-  // Check if user has already reviewed this product
-  const alreadyReviewed = currentProduct?.reviews?.some(
-    (review) => review.userId === user?.id
-  ) || false;
 
   // Handle wishlist toggle click
   const handleToggleWishlist = () => {
@@ -67,6 +68,8 @@ export const ProductDetail: React.FC = () => {
       if (success) {
         setFormRating(0);
         setFormComment('');
+        // Re-check eligibility since we just submitted a review
+        void checkEligibility(id);
       }
     }
   };
@@ -82,6 +85,9 @@ export const ProductDetail: React.FC = () => {
   useEffect(() => {
     if (id) {
       void fetchProductById(id);
+      if (isAuthenticated) {
+        void checkEligibility(id);
+      }
     }
     if (isAuthenticated) {
       void fetchOrders();
@@ -91,7 +97,7 @@ export const ProductDetail: React.FC = () => {
     return () => {
       clearCurrentProduct();
     };
-  }, [id, isAuthenticated, fetchProductById, fetchOrders, clearCurrentProduct]);
+  }, [id, isAuthenticated, fetchProductById, fetchOrders, checkEligibility, clearCurrentProduct]);
 
   const handleBackToShop = () => {
     navigate('/shop');
@@ -312,16 +318,18 @@ export const ProductDetail: React.FC = () => {
                       Please log in to submit a review.
                     </p>
                   </div>
-                ) : !hasPurchased ? (
+                ) : eligibilityLoading ? (
                   <div style={{ padding: '16px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
                     <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: 0 }}>
-                      Only verified purchasers of this product can write a review. If you bought this, please complete checkout first.
+                      Checking review eligibility...
                     </p>
                   </div>
-                ) : alreadyReviewed ? (
+                ) : !canReview ? (
                   <div style={{ padding: '16px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
                     <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: 0 }}>
-                      You have already submitted a review for this product. Thank you for your feedback!
+                      {eligibilityReason === 'ALREADY_REVIEWED'
+                        ? 'You have already submitted a review for this product. Thank you for your feedback!'
+                        : 'Only verified purchasers of this product can write a review. If you bought this, please complete checkout first.'}
                     </p>
                   </div>
                 ) : (

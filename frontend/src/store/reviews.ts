@@ -7,6 +7,11 @@ interface ReviewState {
   /** Contains server-returned error text, if any. */
   error: string | null;
 
+  /** Eligibility state */
+  canReview: boolean;
+  eligibilityReason: string | null;
+  eligibilityLoading: boolean;
+
   /**
    * Submits a rating and comment for a product.
    * On success, dynamically computes and updates the product's ratings stats in `useProductStore`.
@@ -26,6 +31,10 @@ interface ReviewState {
    * @returns Promise resolving to true on success, false on error.
    */
   deleteReview: (productId: string, reviewId: string) => Promise<boolean>;
+  /**
+   * Checks if the authenticated user is eligible to write a review.
+   */
+  checkEligibility: (productId: string) => Promise<void>;
 }
 
 const API_BASE = 'http://localhost:3000';
@@ -36,6 +45,34 @@ const API_BASE = 'http://localhost:3000';
 export const useReviewStore = create<ReviewState>((set) => ({
   loading: false,
   error: null,
+  canReview: false,
+  eligibilityReason: null,
+  eligibilityLoading: false,
+
+  checkEligibility: async (productId) => {
+    set({ eligibilityLoading: true, canReview: false, eligibilityReason: null });
+    try {
+      const res = await fetch(`${API_BASE}/products/${productId}/reviews/eligibility`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to check eligibility.');
+      }
+      set({
+        canReview: data.eligible,
+        eligibilityReason: data.reason || null,
+      });
+    } catch (err: any) {
+      set({
+        canReview: false,
+        eligibilityReason: err.message || 'Failed to check eligibility',
+      });
+    } finally {
+      set({ eligibilityLoading: false });
+    }
+  },
 
   submitReview: async (productId, rating, comment) => {
     set({ loading: true, error: null });

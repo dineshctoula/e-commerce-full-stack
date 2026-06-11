@@ -115,16 +115,24 @@ describe('ProductService', () => {
     });
 
     it('should support sorting by average rating desc', async () => {
-      mockPrismaService.product.findMany.mockResolvedValue([]);
-      mockPrismaService.product.count.mockResolvedValue(0);
+      const mockProducts = [
+        { id: 'prod-1', title: 'Product 1', reviews: [{ rating: 3 }] },
+        { id: 'prod-2', title: 'Product 2', reviews: [{ rating: 5 }] },
+      ];
+      mockPrismaService.product.findMany.mockResolvedValue(mockProducts);
+      mockPrismaService.product.count.mockResolvedValue(2);
 
-      await service.findAll({ sortBy: 'rating', sortOrder: 'desc' });
+      const result = await service.findAll({ sortBy: 'rating', sortOrder: 'desc' });
 
       expect(mockPrismaService.product.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          orderBy: { reviews: { _avg: { rating: 'desc' } } },
+          orderBy: undefined,
+          skip: undefined,
+          take: undefined,
         }),
       );
+      expect(result.products[0].id).toBe('prod-2');
+      expect(result.products[1].id).toBe('prod-1');
     });
   });
 

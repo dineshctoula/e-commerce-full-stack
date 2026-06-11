@@ -43,6 +43,22 @@ export class ReviewController {
   }
 
   /**
+   * Checks if the authenticated user is eligible to write a review.
+   *
+   * @param userId - ID of the authenticated user.
+   * @param productId - Target product UUID.
+   * @returns Eligibility details.
+   */
+  @Get('eligibility')
+  @HttpCode(HttpStatus.OK)
+  checkEligibility(
+    @GetCurrentUserId() userId: string,
+    @Param('productId') productId: string,
+  ) {
+    return this.reviewService.checkEligibility(userId, productId);
+  }
+
+  /**
    * Retrieves all reviews for a specific product.
    * Accessible by public guest users.
    *

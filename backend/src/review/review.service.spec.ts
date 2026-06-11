@@ -61,7 +61,6 @@ describe('ReviewService', () => {
       expect(mockPrismaService.review.findUnique).toHaveBeenCalledWith({
         where: { userId_productId: { userId, productId } },
       });
-      /*
       expect(mockPrismaService.order.findFirst).toHaveBeenCalledWith({
         where: {
           userId,
@@ -69,7 +68,6 @@ describe('ReviewService', () => {
           items: { some: { productId } },
         },
       });
-      */
       expect(mockPrismaService.review.create).toHaveBeenCalledWith({
         data: {
           rating: dto.rating,
@@ -103,7 +101,6 @@ describe('ReviewService', () => {
       );
     });
 
-    /*
     it('should throw ForbiddenException if user has not purchased the product', async () => {
       mockPrismaService.product.findUnique.mockResolvedValue({ id: productId });
       mockPrismaService.review.findUnique.mockResolvedValue(null);
@@ -113,7 +110,48 @@ describe('ReviewService', () => {
         ForbiddenException,
       );
     });
-    */
+  });
+
+  describe('checkEligibility', () => {
+    const userId = 'user-1';
+    const productId = 'prod-1';
+
+    it('should return eligible true if product exists, no reviews, and has purchased', async () => {
+      mockPrismaService.product.findUnique.mockResolvedValue({ id: productId });
+      mockPrismaService.review.findUnique.mockResolvedValue(null);
+      mockPrismaService.order.findFirst.mockResolvedValue({ id: 'order-1' });
+
+      const result = await service.checkEligibility(userId, productId);
+
+      expect(result).toEqual({ eligible: true });
+    });
+
+    it('should throw NotFoundException if product is not found', async () => {
+      mockPrismaService.product.findUnique.mockResolvedValue(null);
+
+      await expect(service.checkEligibility(userId, productId)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should return eligible false with ALREADY_REVIEWED reason if already reviewed', async () => {
+      mockPrismaService.product.findUnique.mockResolvedValue({ id: productId });
+      mockPrismaService.review.findUnique.mockResolvedValue({ id: 'existing-rev-1' });
+
+      const result = await service.checkEligibility(userId, productId);
+
+      expect(result).toEqual({ eligible: false, reason: 'ALREADY_REVIEWED' });
+    });
+
+    it('should return eligible false with NOT_PURCHASED reason if not purchased', async () => {
+      mockPrismaService.product.findUnique.mockResolvedValue({ id: productId });
+      mockPrismaService.review.findUnique.mockResolvedValue(null);
+      mockPrismaService.order.findFirst.mockResolvedValue(null);
+
+      const result = await service.checkEligibility(userId, productId);
+
+      expect(result).toEqual({ eligible: false, reason: 'NOT_PURCHASED' });
+    });
   });
 
   describe('getReviewsForProduct', () => {

@@ -16,16 +16,15 @@ export class ReviewService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * Submits a new product review.
-   * Validates product existence, checks for duplicates, and confirms that the user is a verified purchaser.
+   * Checks if a user is eligible to review a product.
+   * Verifies product exists, checks if the user has already submitted a review,
+   * and verifies if the user has purchased the product.
    *
-   * @param userId - ID of the reviewing user.
-   * @param productId - ID of the product being reviewed.
-   * @param dto - Star rating and comment text.
-   * @returns Persisted Review record.
+   * @param userId - ID of the checking user.
+   * @param productId - ID of the product.
+   * @returns Object indicating eligibility and reason if not eligible.
    */
-  async createReview(userId: string, productId: string, dto: CreateReviewDto) {
-    // 1. Ensure product exists
+  async checkEligibility(userId: string, productId: string) {
     const product = await this.prisma.product.findUnique({
       where: { id: productId },
     });
@@ -33,7 +32,6 @@ export class ReviewService {
       throw new NotFoundException(`Product with ID "${productId}" not found`);
     }
 
-    // 2. Ensure user has not already reviewed this product
     const existingReview = await this.prisma.review.findUnique({
       where: {
         userId_productId: {
@@ -43,11 +41,9 @@ export class ReviewService {
       },
     });
     if (existingReview) {
-      throw new BadRequestException('You have already submitted a review for this product');
+      return { eligible: false, reason: 'ALREADY_REVIEWED' };
     }
 
-    // 3. Verified Purchaser Check: (Temporarily commented out to ease review testing without payment gateways)
-    /*
     const order = await this.prisma.order.findFirst({
       where: {
         userId,
@@ -59,11 +55,32 @@ export class ReviewService {
         },
       },
     });
-
     if (!order) {
-      throw new ForbiddenException('Only verified purchasers of this product can submit a review');
+      return { eligible: false, reason: 'NOT_PURCHASED' };
     }
-    */
+
+    return { eligible: true };
+  }
+
+  /**
+   * Submits a new product review.
+   * Validates product existence, checks for duplicates, and confirms that the user is a verified purchaser.
+   *
+   * @param userId - ID of the reviewing user.
+   * @param productId - ID of the product being reviewed.
+   * @param dto - Star rating and comment text.
+   * @returns Persisted Review record.
+   */
+  async createReview(userId: string, productId: string, dto: CreateReviewDto) {
+    const eligibility = await this.checkEligibility(userId, productId);
+    if (!eligibility.eligible) {
+      if (eligibility.reason === 'ALREADY_REVIEWED') {
+        throw new BadRequestException('You have already submitted a review for this product');
+      }
+      if (eligibility.reason === 'NOT_PURCHASED') {
+        throw new ForbiddenException('Only verified purchasers of this product can submit a review');
+      }
+    }
 
     // 4. Create and return the review
     return this.prisma.review.create({

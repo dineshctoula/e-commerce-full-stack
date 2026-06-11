@@ -93,27 +93,30 @@ export class ProductService {
     const limitNumber = Math.max(1, Number(limit));
     const skip = (pageNumber - 1) * limitNumber;
 
-    let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: 'desc' };
+    const shouldSortByRating = sortBy === 'rating';
+    const querySkip = shouldSortByRating ? undefined : skip;
+    const queryTake = shouldSortByRating ? undefined : limitNumber;
+    let queryOrderBy: Prisma.ProductOrderByWithRelationInput | undefined = undefined;
 
-    if (sortBy) {
+    if (sortBy && sortBy !== 'rating') {
       const order = sortOrder === 'asc' ? 'asc' : 'desc';
       if (sortBy === 'price') {
-        orderBy = { price: order };
+        queryOrderBy = { price: order };
       } else if (sortBy === 'title') {
-        orderBy = { title: order };
-      } else if (sortBy === 'rating') {
-        orderBy = { reviews: { _avg: { rating: order } } };
+        queryOrderBy = { title: order };
       } else if (sortBy === 'newest') {
-        orderBy = { createdAt: 'desc' };
+        queryOrderBy = { createdAt: 'desc' };
       }
+    } else if (!sortBy) {
+      queryOrderBy = { createdAt: 'desc' };
     }
 
     // Concurrently fetch products chunk and calculate total matches count
     const [products, total] = await Promise.all([
       this.prisma.product.findMany({
         where,
-        skip,
-        take: limitNumber,
+        skip: querySkip,
+        take: queryTake,
         include: {
           reviews: {
             select: {
@@ -121,12 +124,12 @@ export class ProductService {
             },
           },
         },
-        orderBy,
+        orderBy: queryOrderBy,
       }),
       this.prisma.product.count({ where }),
     ]);
 
-    const productsWithRatings = products.map((product) => {
+    let productsWithRatings = products.map((product) => {
       const reviews = product.reviews || [];
       const reviewsCount = reviews.length;
       const averageRating =
@@ -148,6 +151,19 @@ export class ProductService {
         reviewsCount,
       };
     });
+
+    if (shouldSortByRating) {
+      const order = sortOrder === 'asc' ? 'asc' : 'desc';
+      productsWithRatings.sort((a, b) => {
+        if (order === 'asc') {
+          return a.averageRating - b.averageRating;
+        } else {
+          return b.averageRating - a.averageRating;
+        }
+      });
+      // Apply pagination manually
+      productsWithRatings = productsWithRatings.slice(skip, skip + limitNumber);
+    }
 
     const totalPages = Math.ceil(total / limitNumber);
 
