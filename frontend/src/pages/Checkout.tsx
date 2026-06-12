@@ -55,7 +55,7 @@ const CheckoutContent: React.FC = () => {
 
   // Compute pricing totals (matching backend expectations)
   const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  
+
   let discount = 0;
   if (appliedCoupon) {
     if (appliedCoupon.discountType === 'PERCENTAGE') {
@@ -216,7 +216,7 @@ const CheckoutContent: React.FC = () => {
       {/* Checkout Page Header & Progress Tracker */}
       <header style={{ marginBottom: '32px', textAlign: 'left' }}>
         <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', fontWeight: 800, marginBottom: '16px' }}>Checkout</h1>
-        
+
         {/* Visual Progress Steps */}
         <div className="checkout-progress-steps glass" style={{ display: 'flex', justifyContent: 'space-between', padding: '16px 24px', borderRadius: '8px' }}>
           <div className={`step-indicator ${step >= 1 ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '14px' }}>
@@ -248,7 +248,7 @@ const CheckoutContent: React.FC = () => {
             <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <MapPin size={20} className="accent-color" /> Shipping Address
             </h2>
-            
+
             <form onSubmit={handleShippingSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div className="form-group">
                 <label htmlFor="fullName" style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '14px' }}>Recipient's Full Name</label>
@@ -540,7 +540,7 @@ const CheckoutContent: React.FC = () => {
                     </div>
                   </div>
                 )}
-                
+
                 <label className={`payment-option glass ${paymentMethod === 'cod' ? 'selected' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', backgroundColor: paymentMethod === 'cod' ? 'rgba(255, 255, 255, 0.05)' : 'transparent' }}>
                   <input
                     type="radio"
@@ -562,7 +562,7 @@ const CheckoutContent: React.FC = () => {
           {/* Pricing Totals & Confirmation Button */}
           <aside className="glass" style={{ padding: '32px', borderRadius: '12px', height: 'fit-content' }}>
             <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '20px' }}>Order Total</h2>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
                 <span>Subtotal</span>
@@ -593,7 +593,7 @@ const CheckoutContent: React.FC = () => {
               >
                 {loading || paymentLoading ? 'Processing...' : 'Confirm & Place Order'}
               </button>
-              
+
               <button
                 className="btn btn-secondary"
                 onClick={() => setStep(1)}
@@ -616,7 +616,7 @@ const CheckoutContent: React.FC = () => {
             <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '20px', lineHeight: 1.6 }}>
               Thank you for your purchase. We have received your order and are processing it.
             </p>
-            
+
             <div className="glass" style={{ width: '100%', padding: '16px', borderRadius: '8px', marginBottom: '32px', backgroundColor: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
               <span style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Order Reference ID</span>
               <strong style={{ fontSize: '15px', color: 'var(--accent-color)', fontFamily: 'monospace' }}>{createdOrderId}</strong>
