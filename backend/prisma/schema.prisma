@@ -64,12 +64,31 @@ model Order {
   shippingPhone      String
   shippingEmail      String
   shippingLocalAddress String
+  couponId    String?
+  coupon      Coupon?     @relation(fields: [couponId], references: [id])
+  discountAmount Float    @default(0)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
   // An order can consist of multiple individual line items.
   // One-to-many relationship with OrderItem, cascade deletes if the parent Order is deleted.
   items       OrderItem[]
+}
+
+model Coupon {
+  id             String      @id @default(uuid())
+  code           String      @unique
+  discountType   String      // PERCENTAGE, FLAT
+  value          Float
+  minOrderAmount Float       @default(0)
+  maxUses        Int?
+  usedCount      Int         @default(0)
+  active         Boolean     @default(true)
+  expiresAt      DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  orders         Order[]
 }
 
 // OrderItem model tracks individual line-items within an Order.
