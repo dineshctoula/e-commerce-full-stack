@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCartStore } from '../store/cart';
 import { useOrderStore } from '../store/orders';
-import { MapPin, CreditCard, CheckCircle, ArrowRight, ArrowLeft, ShoppingBag } from 'lucide-react';
+import { MapPin, CreditCard, CheckCircle, ArrowRight, ArrowLeft, ShoppingBag, Tag } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { useCouponStore } from '../store/coupons';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
 
@@ -17,6 +18,13 @@ const CheckoutContent: React.FC = () => {
   const navigate = useNavigate();
   const { cart, clearCart } = useCartStore();
   const { createOrder, loading, error, clearError, createPaymentIntent, confirmPayment: confirmOrderPayment } = useOrderStore();
+  const {
+    appliedCoupon,
+    isValidating,
+    validationError,
+    validateCoupon,
+    clearAppliedCoupon
+  } = useCouponStore();
   const stripe = useStripe();
   const elements = useElements();
 
@@ -39,11 +47,30 @@ const CheckoutContent: React.FC = () => {
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [paymentMethod, setPaymentMethod] = useState<string>('card');
+  const [couponCodeInput, setCouponCodeInput] = useState<string>('');
+
+  useEffect(() => {
+    clearAppliedCoupon();
+  }, [clearAppliedCoupon]);
 
   // Compute pricing totals (matching backend expectations)
   const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  const tax = subtotal * 0.1;
-  const grandTotal = subtotal + tax;
+  
+  let discount = 0;
+  if (appliedCoupon) {
+    if (appliedCoupon.discountType === 'PERCENTAGE') {
+      discount = subtotal * (appliedCoupon.value / 100);
+    } else {
+      discount = appliedCoupon.value;
+    }
+    if (discount > subtotal) {
+      discount = subtotal;
+    }
+  }
+
+  const subtotalAfterDiscount = subtotal - discount;
+  const tax = subtotalAfterDiscount * 0.1;
+  const grandTotal = subtotalAfterDiscount + tax;
 
   // Validate form details
   const validateForm = () => {
@@ -94,6 +121,7 @@ const CheckoutContent: React.FC = () => {
         shippingPhone: shippingDetails.shippingPhone,
         shippingEmail: shippingDetails.shippingEmail,
         shippingLocalAddress: shippingDetails.shippingLocalAddress,
+        couponCode: appliedCoupon?.code || undefined,
       });
 
       if (!orderResult) {
@@ -360,11 +388,70 @@ const CheckoutContent: React.FC = () => {
               ))}
             </div>
 
+            {/* Promo Coupon Form */}
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px', marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '8px', color: 'var(--text-secondary)' }}>
+                Promo Code
+              </label>
+              {appliedCoupon ? (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(16, 185, 129, 0.1)', padding: '10px 12px', borderRadius: '6px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                    <Tag size={16} color="#10b981" style={{ flexShrink: 0 }} />
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: '#10b981', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{appliedCoupon.code}</span>
+                    <span style={{ fontSize: '12px', color: '#10b981', flexShrink: 0 }}>
+                      ({appliedCoupon.discountType === 'PERCENTAGE' ? `${appliedCoupon.value}%` : `$${appliedCoupon.value}`} off)
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clearAppliedCoupon}
+                    style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '12px', fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    placeholder="Enter code"
+                    value={couponCodeInput}
+                    onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase())}
+                    className="form-input"
+                    style={{ textTransform: 'uppercase', flex: 1, padding: '8px 12px', fontSize: '14px', height: '38px' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!couponCodeInput.trim()) return;
+                      await validateCoupon(couponCodeInput.trim(), subtotal);
+                    }}
+                    disabled={isValidating || !couponCodeInput.trim()}
+                    className="btn btn-secondary"
+                    style={{ padding: '8px 16px', fontSize: '14px', whiteSpace: 'nowrap', height: '38px' }}
+                  >
+                    {isValidating ? '...' : 'Apply'}
+                  </button>
+                </div>
+              )}
+              {validationError && (
+                <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '6px', margin: 0 }}>
+                  {validationError}
+                </p>
+              )}
+            </div>
+
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
                 <span>Subtotal</span>
                 <span>${subtotal.toFixed(2)}</span>
               </div>
+              {discount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#10b981' }}>
+                  <span>Discount</span>
+                  <span>-${discount.toFixed(2)}</span>
+                </div>
+              )}
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
                 <span>Estimated Tax (10%)</span>
                 <span>${tax.toFixed(2)}</span>
@@ -481,6 +568,12 @@ const CheckoutContent: React.FC = () => {
                 <span>Subtotal</span>
                 <span>${subtotal.toFixed(2)}</span>
               </div>
+              {discount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#10b981' }}>
+                  <span>Discount ({appliedCoupon?.code})</span>
+                  <span>-${discount.toFixed(2)}</span>
+                </div>
+              )}
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
                 <span>Estimated Tax (10%)</span>
                 <span>${tax.toFixed(2)}</span>

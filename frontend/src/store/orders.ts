@@ -24,6 +24,8 @@ export interface Order {
   shippingPhone: string;
   shippingEmail: string;
   shippingLocalAddress: string;
+  discountAmount?: number;
+  coupon?: { code: string; discountType: string; value: number } | null;
   createdAt: string;
   updatedAt: string;
   items: OrderItem[];
@@ -65,6 +67,7 @@ interface OrderState {
       shippingPhone: string;
       shippingEmail: string;
       shippingLocalAddress: string;
+      couponCode?: string;
     }
   ) => Promise<Order | null>;
   /**

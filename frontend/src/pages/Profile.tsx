@@ -416,6 +416,18 @@ export const Profile: React.FC = () => {
                         <span style={{ display: 'block', marginTop: '2px' }}><strong>Contact:</strong> {order.shippingEmail} | {order.shippingPhone}</span>
                       </div>
                     </div>
+                    {order.coupon && order.discountAmount && order.discountAmount > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px', color: 'var(--text-secondary)', borderTop: '1px solid rgba(255,255,255,0.02)', paddingTop: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                          <span>Subtotal:</span>
+                          <span>${(order.totalAmount - (order.totalAmount * 0.090909) + order.discountAmount).toFixed(2)}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', color: '#10b981' }}>
+                          <span>Discount ({order.coupon.code}):</span>
+                          <span>-${order.discountAmount.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    ) : null}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '14px', fontWeight: 700, borderTop: '1px solid rgba(255,255,255,0.02)', paddingTop: '8px' }}>
                       <div>
                         {(order.status === 'PENDING' || order.status === 'PROCESSING') && (
@@ -429,8 +441,8 @@ export const Profile: React.FC = () => {
                           </button>
                         )}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <span style={{ color: 'var(--text-secondary)', marginRight: '6px', fontWeight: 500 }}>Grand Total:</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Grand Total:</span>
                         <span className="accent-color">${order.totalAmount.toFixed(2)}</span>
                       </div>
                     </div>

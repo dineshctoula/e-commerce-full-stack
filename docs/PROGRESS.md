@@ -537,3 +537,73 @@ Implemented a full-stack product rating and customer reviews system, enabling au
   $ npx tsc --noEmit
   # Completed successfully (exit status 0)
   ```
+
+## Day 13 — Promo Coupon System Backend
+
+Implemented the database schema, CRUD services, validation controller, and secure checkout transaction integrations for the discount coupon promotional system.
+
+### Key Architecture Decisions
+1. **Atomic Database Transactions**:
+   - Integrated coupon check, usage limit checks, expiry verification, and used count increments atomically within the `prisma.$transaction` checkout block in `OrderService` to prevent race conditions during concurrent checkouts.
+2. **Backend Discount Calculations**:
+   - Calculated coupon discounts on the server-side to prevent client-side tampering, storing `discountAmount` and `couponId` directly on the `Order` record as an immutable historical record.
+3. **Public Validation Endpoint**:
+   - Developed `GET /coupons/validate/:code` to allow authenticated users to verify active status, expiry bounds, and minimum spend limits of coupons during cart modification.
+
+### Detailed Implementation Steps
+
+#### 1. Database Schema
+* File: `backend/prisma/schema.prisma`
+* Added `Coupon` model and referenced it in the `Order` model:
+  ```prisma
+  model Coupon {
+    id             String      @id @default(uuid())
+    code           String      @unique
+    discountType   DiscountType
+    value          Float
+    minOrderAmount Float       @default(0)
+    maxUses        Int?
+    usedCount      Int         @default(0)
+    active         Boolean     @default(true)
+    expiresAt      DateTime?
+    createdAt      DateTime    @default(now())
+    updatedAt      DateTime    @updatedAt
+    orders         Order[]
+  }
+  ```
+
+#### 2. Backend Services & Controllers
+* Service: `CouponService` - Manages CRUD, listings, and checkout validations.
+* Controller: `CouponController` - Exposes REST endpoints for admin management and validation.
+* Order: Integrated discount calculations into `OrderService.createOrder`.
+
+---
+
+## Day 14 — Promo Coupon System Frontend & Dashboard
+
+Implemented the client-side state store, checkout flow integration, order history views, and administrative management panel for coupon promo codes.
+
+### Key Architecture Decisions
+1. **Unified Zustand Coupon Store**:
+   - Created `useCouponStore` for managing administrative CRUD actions (`fetchCoupons`, `createCoupon`, `deleteCoupon`) and checkout code validation (`validateCoupon`).
+2. **Checkout Coupon Application**:
+   - Embedded coupon code inputs with error handling and real-time discount deduction directly into the step-by-step wizard Checkout component.
+3. **Responsive Admin Panel**:
+   - Added a dedicated "Manage Coupons" tab inside `AdminDashboard.tsx` displaying coupon codes, types, usage statistics, active statuses, and expirations.
+
+### Detailed Implementation Steps
+
+#### 1. Zustand Store
+* File: `frontend/src/store/coupons.ts`
+* Created store exposing `fetchCoupons`, `createCoupon`, `deleteCoupon`, `validateCoupon`, and applied coupon states.
+
+#### 2. Administrative Control
+* File: `frontend/src/pages/AdminDashboard.tsx`
+* Designed coupon listing tables, create coupon modals, and confirmation dialogs.
+
+#### 3. Checkout & Order History
+* File: `frontend/src/pages/Checkout.tsx`
+* Added promo code entry, real-time total updates, and payload integrations.
+* File: `frontend/src/pages/Profile.tsx`
+* Displayed discount lines and coupon labels under order details.
+
