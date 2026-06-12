@@ -60,4 +60,8 @@ export class CreateOrderDto {
   @IsString()
   @IsNotEmpty({ message: 'Shipping local address is required' })
   shippingLocalAddress: string;
+
+  @IsString()
+  @IsOptional()
+  couponCode?: string;
 }

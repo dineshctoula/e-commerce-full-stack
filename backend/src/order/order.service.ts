@@ -53,10 +53,61 @@ export class OrderService {
         });
       }
 
+      let discountAmount = 0;
+      let couponId = null;
+
+      if (dto.couponCode) {
+        const formattedCode = dto.couponCode.toUpperCase().trim();
+        const coupon = await tx.coupon.findUnique({
+          where: { code: formattedCode },
+        });
+
+        if (!coupon) {
+          throw new NotFoundException(`Coupon code "${formattedCode}" not found`);
+        }
+
+        if (!coupon.active) {
+          throw new BadRequestException('Coupon is inactive');
+        }
+
+        if (coupon.expiresAt && new Date() > new Date(coupon.expiresAt)) {
+          throw new BadRequestException('Coupon has expired');
+        }
+
+        if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) {
+          throw new BadRequestException('Coupon usage limit reached');
+        }
+
+        if (totalAmount < coupon.minOrderAmount) {
+          throw new BadRequestException(
+            `Minimum order amount of $${coupon.minOrderAmount.toFixed(2)} is required to use this coupon`,
+          );
+        }
+
+        couponId = coupon.id;
+        if (coupon.discountType === 'PERCENTAGE') {
+          discountAmount = totalAmount * (coupon.value / 100);
+        } else {
+          discountAmount = coupon.value;
+        }
+
+        discountAmount = Math.min(discountAmount, totalAmount);
+        totalAmount -= discountAmount;
+
+        await tx.coupon.update({
+          where: { id: coupon.id },
+          data: {
+            usedCount: { increment: 1 },
+          },
+        });
+      }
+
       const order = await tx.order.create({
         data: {
           userId,
           totalAmount,
+          discountAmount,
+          couponId,
           status: 'PENDING',
           shippingAddress: dto.shippingAddress,
           shippingCity: dto.shippingCity,
@@ -90,6 +141,7 @@ export class OrderService {
               product: true,
             },
           },
+          coupon: true,
         },
       });
     });
@@ -110,6 +162,7 @@ export class OrderService {
               product: true,
             },
           },
+          coupon: true,
         },
         orderBy: {
           createdAt: 'desc',
@@ -128,6 +181,7 @@ export class OrderService {
             product: true,
           },
         },
+        coupon: true,
       },
       orderBy: {
         createdAt: 'desc',
@@ -149,6 +203,7 @@ export class OrderService {
             product: true,
           },
         },
+        coupon: true,
       },
     });
 
@@ -203,6 +258,7 @@ export class OrderService {
             product: true,
           },
         },
+        coupon: true,
       },
     });
   }

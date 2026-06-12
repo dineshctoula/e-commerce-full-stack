@@ -24,6 +24,10 @@ describe('OrderService', () => {
     orderItem: {
       createMany: jest.fn(),
     },
+    coupon: {
+      findUnique: jest.fn(),
+      update: jest.fn(),
+    },
   };
 
   beforeEach(async () => {
@@ -105,6 +109,8 @@ describe('OrderService', () => {
         data: {
           userId,
           totalAmount: 300.0,
+          discountAmount: 0,
+          couponId: null,
           status: 'PENDING',
           shippingAddress: '123 Main St',
           shippingCity: 'Metropolis',
@@ -136,6 +142,84 @@ describe('OrderService', () => {
 
       await expect(service.createOrder(userId, dto)).rejects.toThrow(BadRequestException);
     });
+
+    it('should create an order with coupon discount applied successfully', async () => {
+      const dtoWithCoupon = { ...dto, couponCode: 'SAVE10' };
+      const mockCoupon = {
+        id: 'coupon-1',
+        code: 'SAVE10',
+        discountType: 'PERCENTAGE',
+        value: 10,
+        minOrderAmount: 50,
+        maxUses: 10,
+        usedCount: 2,
+        active: true,
+        expiresAt: null,
+      };
+
+      mockPrismaService.product.findMany.mockResolvedValue([mockProduct]);
+      mockPrismaService.coupon.findUnique.mockResolvedValue(mockCoupon);
+      mockPrismaService.coupon.update.mockResolvedValue(mockCoupon);
+      mockPrismaService.order.create.mockResolvedValue({
+        id: 'order-123',
+        userId,
+        totalAmount: 270.0,
+        discountAmount: 30.0,
+        couponId: 'coupon-1',
+        status: 'PENDING',
+      });
+      mockPrismaService.orderItem.createMany.mockResolvedValue({ count: 1 });
+      
+      const expectedOrderDetails = {
+        id: 'order-123',
+        userId,
+        totalAmount: 270.0,
+        discountAmount: 30.0,
+        couponId: 'coupon-1',
+        status: 'PENDING',
+        items: [],
+        coupon: mockCoupon,
+      };
+      mockPrismaService.order.findUnique.mockResolvedValue(expectedOrderDetails);
+
+      const result = await service.createOrder(userId, dtoWithCoupon);
+
+      expect(mockPrismaService.coupon.findUnique).toHaveBeenCalledWith({
+        where: { code: 'SAVE10' },
+      });
+      expect(mockPrismaService.order.create).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({
+          totalAmount: 270.0,
+          discountAmount: 30.0,
+          couponId: 'coupon-1',
+        }),
+      }));
+      expect(mockPrismaService.coupon.update).toHaveBeenCalledWith({
+        where: { id: 'coupon-1' },
+        data: { usedCount: { increment: 1 } },
+      });
+      expect(result).toEqual(expectedOrderDetails);
+    });
+
+    it('should throw BadRequestException if coupon is inactive', async () => {
+      const dtoWithCoupon = { ...dto, couponCode: 'SAVE10' };
+      const mockCoupon = {
+        id: 'coupon-1',
+        code: 'SAVE10',
+        discountType: 'PERCENTAGE',
+        value: 10,
+        minOrderAmount: 50,
+        maxUses: 10,
+        usedCount: 2,
+        active: false,
+        expiresAt: null,
+      };
+
+      mockPrismaService.product.findMany.mockResolvedValue([mockProduct]);
+      mockPrismaService.coupon.findUnique.mockResolvedValue(mockCoupon);
+
+      await expect(service.createOrder(userId, dtoWithCoupon)).rejects.toThrow(BadRequestException);
+    });
   });
 
   describe('getOrders', () => {
@@ -150,7 +234,7 @@ describe('OrderService', () => {
       const result = await service.getOrders('admin-id', 'ADMIN');
 
       expect(mockPrismaService.order.findMany).toHaveBeenCalledWith({
-        include: { items: { include: { product: true } } },
+        include: { items: { include: { product: true } }, coupon: true },
         orderBy: { createdAt: 'desc' },
       });
       expect(result).toEqual(orders);
@@ -164,7 +248,7 @@ describe('OrderService', () => {
 
       expect(mockPrismaService.order.findMany).toHaveBeenCalledWith({
         where: { userId: 'user-1' },
-        include: { items: { include: { product: true } } },
+        include: { items: { include: { product: true } }, coupon: true },
         orderBy: { createdAt: 'desc' },
       });
       expect(result).toEqual(userOrders);
@@ -181,7 +265,7 @@ describe('OrderService', () => {
 
       expect(mockPrismaService.order.findUnique).toHaveBeenCalledWith({
         where: { id: 'order-1' },
-        include: { items: { include: { product: true } } },
+        include: { items: { include: { product: true } }, coupon: true },
       });
       expect(result).toEqual(mockOrder);
     });
@@ -223,7 +307,7 @@ describe('OrderService', () => {
       expect(mockPrismaService.order.update).toHaveBeenCalledWith({
         where: { id: 'order-1' },
         data: { status: 'SHIPPED' },
-        include: { items: { include: { product: true } } },
+        include: { items: { include: { product: true } }, coupon: true },
       });
       expect(result.status).toBe('SHIPPED');
     });

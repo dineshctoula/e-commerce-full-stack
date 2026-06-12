@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -16,11 +17,23 @@ import { CouponService } from './coupon.service';
 
 /**
  * Controller managing coupon campaigns and discount rules.
- * Restricts coupon CRUD actions to ADMIN users.
  */
 @Controller('coupons')
 export class CouponController {
   constructor(private readonly couponService: CouponService) {}
+
+  /**
+   * Validates a coupon code for checkout.
+   * Accessible by any authenticated user.
+   */
+  @Get('validate/:code')
+  @HttpCode(HttpStatus.OK)
+  validate(
+    @Param('code') code: string,
+    @Query('cartTotal') cartTotal: string,
+  ) {
+    return this.couponService.validateCouponCode(code, Number(cartTotal || 0));
+  }
 
   /**
    * Creates a new discount coupon.
