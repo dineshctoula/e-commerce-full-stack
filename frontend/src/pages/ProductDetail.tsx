@@ -18,7 +18,7 @@ export const ProductDetail: React.FC = () => {
   const navigate = useNavigate();
 
   // Retrieve states and actions from stores
-  const { currentProduct, loading, error, fetchProductById, clearCurrentProduct } = useProductStore();
+  const { currentProduct, loading, error, fetchProductById, clearCurrentProduct, recommendations, fetchRecommendations } = useProductStore();
   const { addToCart, wishlist, toggleWishlist } = useCartStore();
   const { user, isAuthenticated } = useAuthStore();
   const { orders, fetchOrders } = useOrderStore();
@@ -85,6 +85,7 @@ export const ProductDetail: React.FC = () => {
   useEffect(() => {
     if (id) {
       void fetchProductById(id);
+      void fetchRecommendations(id);
       if (isAuthenticated) {
         void checkEligibility(id);
       }
@@ -97,7 +98,7 @@ export const ProductDetail: React.FC = () => {
     return () => {
       clearCurrentProduct();
     };
-  }, [id, isAuthenticated, fetchProductById, fetchOrders, checkEligibility, clearCurrentProduct]);
+  }, [id, isAuthenticated, fetchProductById, fetchRecommendations, fetchOrders, checkEligibility, clearCurrentProduct]);
 
   const handleBackToShop = () => {
     navigate('/shop');
@@ -463,6 +464,75 @@ export const ProductDetail: React.FC = () => {
               )}
             </div>
           </div>
+
+          {/* Product Recommendations Section */}
+          {recommendations && recommendations.length > 0 && (
+            <div className="recommendations-section glass" style={{ marginTop: '40px', padding: '32px', borderRadius: '16px', textAlign: 'left' }}>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', fontWeight: 800, marginBottom: '24px' }}>
+                You May Also Like
+              </h2>
+              <div className="product-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px' }}>
+                {recommendations.map((recProduct) => (
+                  <div
+                    key={recProduct.id}
+                    className="product-card glass"
+                    style={{ cursor: 'pointer', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
+                    onClick={() => {
+                      navigate(`/products/${recProduct.id}`);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                  >
+                    <div className="product-image-container" style={{ height: '160px' }}>
+                      <img
+                        src={recProduct.image || 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=600'}
+                        alt={recProduct.title}
+                        className="product-image"
+                        loading="lazy"
+                        style={{ height: '100%', objectFit: 'cover' }}
+                      />
+                      <span className="product-category-badge" style={{ fontSize: '10px', padding: '2px 8px' }}>
+                        {recProduct.category}
+                      </span>
+                    </div>
+
+                    <div className="product-card-body" style={{ padding: '16px' }}>
+                      <h3 className="product-card-title" style={{ fontSize: '14px', marginBottom: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {recProduct.title}
+                      </h3>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}>
+                        <div style={{ display: 'flex', gap: '2px' }}>
+                          {[1, 2, 3, 4, 5].map((star) => {
+                            const isFilled = star <= Math.round(recProduct.averageRating || 0);
+                            return (
+                              <Star
+                                key={star}
+                                size={11}
+                                fill={isFilled ? '#fbbf24' : 'none'}
+                                color={isFilled ? '#fbbf24' : 'var(--text-secondary)'}
+                              />
+                            );
+                          })}
+                        </div>
+                        <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
+                          ({recProduct.reviewsCount || 0})
+                        </span>
+                      </div>
+
+                      <div className="product-card-footer" style={{ marginTop: '12px' }}>
+                        <span className="product-card-price" style={{ fontSize: '15px' }}>
+                          ${recProduct.price.toFixed(2)}
+                        </span>
+                        <span style={{ fontSize: '12px', color: 'var(--accent-color)', fontWeight: 600 }}>
+                          View Details &rarr;
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

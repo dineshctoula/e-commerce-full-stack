@@ -60,6 +60,8 @@ interface ProductState {
   products: Product[];
   /** Detail data of single selected product. */
   currentProduct: Product | null;
+  /** Array of recommended products. */
+  recommendations: Product[];
   /** Total count matching the current filters. */
   total: number;
   /** Current page index. */
@@ -86,6 +88,10 @@ interface ProductState {
    * @param id - UUID of product.
    */
   fetchProductById: (id: string) => Promise<void>;
+  /**
+   * Retrieves recommendations for a specific product.
+   */
+  fetchRecommendations: (id: string) => Promise<void>;
   /**
    * Cleans the active single product details from the store to prevent display flashing.
    */
@@ -122,6 +128,7 @@ const API_BASE = 'http://localhost:3000';
 export const useProductStore = create<ProductState>((set) => ({
   products: [],
   currentProduct: null,
+  recommendations: [],
   total: 0,
   page: 1,
   limit: 10,
@@ -195,6 +202,20 @@ export const useProductStore = create<ProductState>((set) => ({
       set({ error: err.message || 'Error loading product details.' });
     } finally {
       set({ loading: false });
+    }
+  },
+
+  fetchRecommendations: async (id: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/products/${id}/recommendations`);
+      if (!res.ok) {
+        throw new Error('Failed to fetch recommendations.');
+      }
+      const data = await res.json();
+      set({ recommendations: data });
+    } catch (err: any) {
+      console.error(err.message || 'Error fetching recommendations.');
+      set({ recommendations: [] });
     }
   },
 
