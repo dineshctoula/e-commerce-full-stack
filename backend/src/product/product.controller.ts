@@ -91,6 +91,19 @@ export class ProductController {
   }
 
   /**
+   * Retrieves recommended products for a specific product.
+   * Accessible by public users.
+   *
+   * @param id - UUID of the product.
+   * @returns Array of recommended products.
+   */
+  @Get(':id/recommendations')
+  @Public()
+  getRecommendations(@Param('id') id: string) {
+    return this.productService.getRecommendations(id);
+  }
+
+  /**
    * Modifies an existing product's fields.
    * Restricted to admin accounts.
    *

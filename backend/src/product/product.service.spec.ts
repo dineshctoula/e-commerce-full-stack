@@ -227,6 +227,36 @@ describe('ProductService', () => {
     });
   });
 
+  describe('getRecommendations', () => {
+    it('should return up to 4 products in the same category, excluding the target product', async () => {
+      const targetProduct = {
+        id: 'prod-target',
+        title: 'Target Product',
+        category: 'Electronics',
+        reviews: [],
+      };
+      const matchingProducts = [
+        { id: 'prod-a', title: 'Product A', category: 'Electronics', reviews: [{ rating: 4 }] },
+        { id: 'prod-b', title: 'Product B', category: 'Electronics', reviews: [{ rating: 5 }] },
+        { id: 'prod-c', title: 'Product C', category: 'Electronics', reviews: [] },
+      ];
+
+      mockPrismaService.product.findUnique.mockResolvedValue(targetProduct);
+      mockPrismaService.product.findMany.mockResolvedValueOnce(matchingProducts);
+      mockPrismaService.product.findMany.mockResolvedValueOnce([
+        { id: 'prod-d', title: 'Product D', category: 'Clothing', reviews: [{ rating: 3 }] }
+      ]);
+
+      const result = await service.getRecommendations('prod-target');
+
+      expect(result.length).toBe(4);
+      expect(result[0].id).toBe('prod-b');
+      expect(result[1].id).toBe('prod-a');
+      expect(result[2].id).toBe('prod-c');
+      expect(result[3].id).toBe('prod-d');
+    });
+  });
+
   describe('remove', () => {
     it('should delete and return product if it exists', async () => {
       const product = { id: 'prod-1', title: 'Keyboard' };

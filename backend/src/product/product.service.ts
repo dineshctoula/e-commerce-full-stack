@@ -279,6 +279,88 @@ export class ProductService {
   }
 
   /**
+   * Generates product recommendations for a given product ID.
+   * Recommendations prioritize other items in the same category.
+   * Filter out the target product.
+   * Results are ordered by average rating descending, returning up to 4 items.
+   * If fewer than 4 are found, it pads the list with top-rated items from other categories.
+   */
+  async getRecommendations(id: string) {
+    // 1. Fetch current product to check category
+    const currentProduct = await this.findOne(id);
+
+    // 2. Fetch products in the same category (excluding current product)
+    const categoryProducts = await this.prisma.product.findMany({
+      where: {
+        category: currentProduct.category,
+        id: { not: id },
+      },
+      include: {
+        reviews: {
+          select: {
+            rating: true,
+          },
+        },
+      },
+      take: 10,
+    });
+
+    const formatAndScore = (productsList: any[]) => {
+      return productsList.map((product) => {
+        const reviews = product.reviews || [];
+        const reviewsCount = reviews.length;
+        const averageRating =
+          reviewsCount > 0
+            ? Number(
+                (
+                  reviews.reduce((sum, r) => sum + r.rating, 0) /
+                  reviewsCount
+                ).toFixed(1),
+              )
+            : 0;
+
+        const { reviews: _, ...productData } = product;
+        return {
+          ...productData,
+          averageRating,
+          reviewsCount,
+        };
+      });
+    };
+
+    let recommended = formatAndScore(categoryProducts);
+    // Sort by rating descending
+    recommended.sort((a, b) => b.averageRating - a.averageRating);
+
+    // 3. If we have fewer than 4 recommendations, pad with top-rated products from other categories
+    if (recommended.length < 4) {
+      const needed = 4 - recommended.length;
+      const excludeIds = [id, ...recommended.map((p) => p.id)];
+
+      const paddingProducts = await this.prisma.product.findMany({
+        where: {
+          id: { notIn: excludeIds },
+        },
+        include: {
+          reviews: {
+            select: {
+              rating: true,
+            },
+          },
+        },
+        take: needed + 10,
+      });
+
+      let formattedPadding = formatAndScore(paddingProducts);
+      formattedPadding.sort((a, b) => b.averageRating - a.averageRating);
+
+      recommended = [...recommended, ...formattedPadding.slice(0, needed)];
+    }
+
+    return recommended.slice(0, 4);
+  }
+
+  /**
    * Modifies columns of an existing product.
    * Throws 404 Exception if the target product ID does not exist.
    *
