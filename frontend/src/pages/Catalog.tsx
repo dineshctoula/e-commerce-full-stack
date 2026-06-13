@@ -254,6 +254,33 @@ export const Catalog: React.FC = () => {
             </div>
           ) : (
             <>
+              {searchVal.trim() && (
+                <div className="glass" style={{ padding: '16px 24px', borderRadius: '12px', fontSize: '14px', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span>
+                    Showing results for "<strong>{searchVal.trim()}</strong>"
+                    {sortByVal === 'newest' ? ' sorted by search relevance' : ''}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchVal('');
+                      void fetchProducts({
+                        page: 1,
+                        limit: 8,
+                        category: categoryVal || undefined,
+                        minPrice: minPriceVal || undefined,
+                        maxPrice: maxPriceVal || undefined,
+                        sortBy: sortByVal,
+                        sortOrder: sortByVal === 'price-asc' ? 'asc' : 'desc'
+                      });
+                    }}
+                    style={{ background: 'none', border: 'none', color: 'var(--accent-color)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, padding: 0 }}
+                  >
+                    Clear Search
+                  </button>
+                </div>
+              )}
+
               {/* Product Card Grid */}
               <div className="product-grid">
                 {products.map((product) => (
