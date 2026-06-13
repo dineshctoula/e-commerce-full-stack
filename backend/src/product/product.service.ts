@@ -63,11 +63,17 @@ export class ProductService {
 
     const where: Prisma.ProductWhereInput = {};
 
+    const tokens = search
+      ? search.trim().toLowerCase().split(/\s+/).filter(t => t.length > 0)
+      : [];
+
     // Apply case-insensitive wildcard searches across title/description fields
-    if (search) {
+    if (search && tokens.length > 0) {
       where.OR = [
         { title: { contains: search } },
         { description: { contains: search } },
+        ...tokens.map((token) => ({ title: { contains: token } })),
+        ...tokens.map((token) => ({ description: { contains: token } })),
       ];
     }
 
@@ -94,8 +100,9 @@ export class ProductService {
     const skip = (pageNumber - 1) * limitNumber;
 
     const shouldSortByRating = sortBy === 'rating';
-    const querySkip = shouldSortByRating ? undefined : skip;
-    const queryTake = shouldSortByRating ? undefined : limitNumber;
+    const isSearchQuery = search && tokens.length > 0;
+    const querySkip = (shouldSortByRating || isSearchQuery) ? undefined : skip;
+    const queryTake = (shouldSortByRating || isSearchQuery) ? undefined : limitNumber;
     let queryOrderBy: Prisma.ProductOrderByWithRelationInput | undefined = undefined;
 
     if (sortBy && sortBy !== 'rating') {
@@ -107,7 +114,7 @@ export class ProductService {
       } else if (sortBy === 'newest') {
         queryOrderBy = { createdAt: 'desc' };
       }
-    } else if (!sortBy) {
+    } else if (!sortBy && !isSearchQuery) {
       queryOrderBy = { createdAt: 'desc' };
     }
 
@@ -152,6 +159,47 @@ export class ProductService {
       };
     });
 
+    if (isSearchQuery) {
+      const searchLower = search.toLowerCase();
+      productsWithRatings = productsWithRatings.map((product) => {
+        let score = 0;
+        const titleLower = product.title.toLowerCase();
+        const descLower = product.description.toLowerCase();
+
+        // Exact match bonuses
+        if (titleLower.includes(searchLower)) {
+          score += 20;
+        }
+        if (descLower.includes(searchLower)) {
+          score += 5;
+        }
+
+        // Token matches
+        tokens.forEach((token) => {
+          // Count occurrences in title
+          let titleIdx = titleLower.indexOf(token);
+          while (titleIdx !== -1) {
+            score += 10;
+            titleIdx = titleLower.indexOf(token, titleIdx + 1);
+          }
+
+          // Count occurrences in description
+          let descIdx = descLower.indexOf(token);
+          while (descIdx !== -1) {
+            score += 2;
+            descIdx = descLower.indexOf(token, descIdx + 1);
+          }
+        });
+
+        return { ...product, searchScore: score };
+      });
+
+      // If no explicit sort, sort by searchScore descending
+      if (!sortBy) {
+        productsWithRatings.sort((a: any, b: any) => b.searchScore - a.searchScore);
+      }
+    }
+
     if (shouldSortByRating) {
       const order = sortOrder === 'asc' ? 'asc' : 'desc';
       productsWithRatings.sort((a, b) => {
@@ -161,7 +209,10 @@ export class ProductService {
           return b.averageRating - a.averageRating;
         }
       });
-      // Apply pagination manually
+    }
+
+    // Apply pagination manually if database pagination was bypassed
+    if (shouldSortByRating || isSearchQuery) {
       productsWithRatings = productsWithRatings.slice(skip, skip + limitNumber);
     }
 

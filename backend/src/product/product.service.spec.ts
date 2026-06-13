@@ -134,6 +134,22 @@ describe('ProductService', () => {
       expect(result.products[0].id).toBe('prod-2');
       expect(result.products[1].id).toBe('prod-1');
     });
+
+    it('should perform tokenized keyword relevance search and rank results', async () => {
+      const mockProducts = [
+        { id: 'prod-1', title: 'Blue shirt cotton', description: 'Plain description', reviews: [] },
+        { id: 'prod-2', title: 'Red jacket', description: 'Includes a warm blue hood', reviews: [] },
+        { id: 'prod-3', title: 'Casual pants', description: 'Made of nice fabric', reviews: [] },
+      ];
+      mockPrismaService.product.findMany.mockResolvedValue(mockProducts);
+      mockPrismaService.product.count.mockResolvedValue(3);
+
+      const result = await service.findAll({ search: 'blue shirt' });
+
+      expect(result.products[0].id).toBe('prod-1');
+      expect(result.products[1].id).toBe('prod-2');
+      expect((result.products[0] as any).searchScore).toBeGreaterThan((result.products[1] as any).searchScore);
+    });
   });
 
   describe('findOne', () => {
