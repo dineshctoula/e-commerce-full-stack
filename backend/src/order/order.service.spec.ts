@@ -8,7 +8,7 @@ describe('OrderService', () => {
 
   // Mock Prisma Service helper.
   // The $transaction mock receives a callback and runs it synchronously, passing itself as the transaction client.
-  const mockPrismaService = {
+  const mockPrismaService: any = {
     $transaction: jest.fn((cb) => cb(mockPrismaService)),
     product: {
       findMany: jest.fn(),

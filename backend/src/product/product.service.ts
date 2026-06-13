@@ -313,7 +313,7 @@ export class ProductService {
           reviewsCount > 0
             ? Number(
                 (
-                  reviews.reduce((sum, r) => sum + r.rating, 0) /
+                  reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) /
                   reviewsCount
                 ).toFixed(1),
               )
