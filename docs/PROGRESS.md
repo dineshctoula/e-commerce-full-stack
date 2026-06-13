@@ -607,3 +607,40 @@ Implemented the client-side state store, checkout flow integration, order histor
 * File: `frontend/src/pages/Profile.tsx`
 * Displayed discount lines and coupon labels under order details.
 
+
+---
+
+## Day 15 — Relevance Search, Recommendations Engine, & Security/Performance Auditing
+
+Implemented tokenized search-relevance ranking, collaborative/category-based product recommendation widgets, and global security & performance enhancements.
+
+### Key Architecture Decisions
+1. **Relevance-Scoring Search**:
+   - Instead of simple database wildcards, the search queries are tokenized. Matches on titles gain higher weight than descriptions, and exact phrase matches receive bonus scores.
+2. **Hybrid Product Recommendation Engine**:
+   - The product detail view triggers recommended items. Recommendations prioritize same-category products sorted by rating and reviews count, falling back to top-rated catalog items across other categories if needed to pad to 4 recommendations.
+3. **Helmet Security Headers & Throttling**:
+   - Applied Helmet security headers on NestJS to secure the app against common vulnerabilities.
+   - Configured rate limiting (100 requests per minute per IP) globally on backend API routes.
+4. **React Route Lazy Loading**:
+   - Refactored frontend pages to use dynamic `lazy` imports wrapped in a `Suspense` loader, lowering initial javascript bundle sizes and speeding up initial paint.
+
+### Detailed Implementation Steps
+
+#### 1. Search Relevance (Backend & Frontend)
+* File: `backend/src/product/product.service.ts`
+* Tokenized keyword terms, calculated search weight scores, handled custom sorting, and returned scored matching results.
+* File: `frontend/src/pages/Catalog.tsx`
+* Added an active search query banner detailing relevance sorting and a clear trigger.
+
+#### 2. Recommendations Engine
+* Files: `backend/src/product/product.controller.ts` & `product.service.ts`
+* Exposed `GET /products/:id/recommendations` returning top-rated related items. Added spec suite validating engine ordering and padding.
+* Files: `frontend/src/store/products.ts` & `pages/ProductDetail.tsx`
+* Integrated state actions and a responsive "You May Also Like" card grid navigation widget.
+
+#### 3. Security & Performance
+* File: `backend/src/main.ts` & `app.module.ts`
+* Applied Helmet middleware and registered global `ThrottlerGuard` rate limiter.
+* File: `frontend/src/App.tsx`
+* Wrapped routing pages in lazy-suspense boundaries.
