@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '../store/auth';
 import { Sparkles, CheckCircle, Play, Lock } from 'lucide-react';
+import { API_BASE } from '../config';
 
 interface RoadmapItem {
   day: number;
@@ -15,7 +16,7 @@ export const Home: React.FC = () => {
 
   // Verify backend connectivity on load
   useEffect(() => {
-    fetch('http://localhost:3000/health')
+    fetch(`${API_BASE}/health`)
       .then((res) => {
         if (res.ok) {
           setBackendStatus('ok');
@@ -40,10 +41,11 @@ export const Home: React.FC = () => {
     { day: 9, title: 'Stripe Payments', description: 'Secure payment intent endpoints and card details form.', status: 'completed' },
     { day: 10, title: 'Admin Control Center', description: 'Dashboard views for managing catalog items, categories, status changes, and store metrics.', status: 'completed' },
     { day: 11, title: 'Code Documentation & Comments', description: 'Fully document both backend and frontend layers with comprehensive JSDocs.', status: 'completed' },
-    { day: 12, title: 'Reviews & Ratings', description: 'Calculation of rating metrics and interactive star reviews widget.', status: 'in-progress' },
-    { day: 13, title: 'Search & Recommendations', description: 'Fuzzy keyword searches and related item recommendations.', status: 'locked' },
-    { day: 14, title: 'Security Auditing', description: 'Throttler rate limits, Helmet headers, and loading optimizations.', status: 'locked' },
-    { day: 15, title: 'Docker & Polishing', description: 'Docker compose orchestration, production builds, and final QA.', status: 'locked' },
+    { day: 12, title: 'Ratings & Reviews System', description: 'Verified purchaser validation, dynamic rating aggregates, and interactive star rating widgets.', status: 'completed' },
+    { day: 13, title: 'Promo Coupon System Backend', description: 'Database schema, CRUD services, validation controller, and transactional checkout discount integration.', status: 'completed' },
+    { day: 14, title: 'Promo Coupon System Frontend', description: 'Zustand coupon store, checkout coupon application, and admin coupon control panel.', status: 'completed' },
+    { day: 15, title: 'Search, Recommendations, & Security', description: 'Relevance-scored search, product recommendation widgets, Helmet headers, and API rate limiting.', status: 'completed' },
+    { day: 16, title: 'Docker & Polishing', description: 'Docker compose orchestration, production builds, and final QA.', status: 'in-progress' },
   ];
 
   return (
