@@ -21,7 +21,7 @@ export const ProductDetail: React.FC = () => {
   const { currentProduct, loading, error, fetchProductById, clearCurrentProduct, recommendations, fetchRecommendations } = useProductStore();
   const { addToCart, wishlist, toggleWishlist } = useCartStore();
   const { user, isAuthenticated } = useAuthStore();
-  const { orders, fetchOrders } = useOrderStore();
+  const { fetchOrders } = useOrderStore();
   const {
     submitReview,
     deleteReview,

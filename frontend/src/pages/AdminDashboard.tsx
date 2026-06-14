@@ -20,9 +20,7 @@ import {
   Phone,
   Plus,
   Edit,
-  Trash2,
-  Tag,
-  Ticket
+  Trash2
 } from 'lucide-react';
 import { useCouponStore } from '../store/coupons';
 
