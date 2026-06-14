@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { API_BASE } from '../config';
 
 export interface Coupon {
   id: string;
@@ -30,7 +31,6 @@ interface CouponState {
   clearAppliedCoupon: () => void;
 }
 
-const API_BASE = 'http://localhost:3000';
 
 export const useCouponStore = create<CouponState>((set) => ({
   coupons: [],

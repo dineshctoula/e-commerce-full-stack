@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { API_BASE } from '../config';
 import type { Product } from './products';
 
 // Interface representing an item inside an order
@@ -45,6 +46,8 @@ interface OrderState {
   statsLoading: boolean;
   /** Server statistics fetching error context text. */
   statsError: string | null;
+  /** Latest order-related error message. */
+  error: string | null;
 
   /**
    * Queries customer order history list.
@@ -107,8 +110,6 @@ interface OrderState {
    */
   cancelOrder: (orderId: string) => Promise<boolean>;
 }
-
-const API_BASE = 'http://localhost:3000';
 
 export const useOrderStore = create<OrderState>((set) => ({
   orders: [],

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { API_BASE } from '../config';
 
 export interface Review {
   id: string;
@@ -119,8 +120,6 @@ interface ProductState {
    */
   deleteProduct: (id: string) => Promise<boolean>;
 }
-
-const API_BASE = 'http://localhost:3000';
 
 /**
  * Zustand hook storing global product catalog states and catalog operations.

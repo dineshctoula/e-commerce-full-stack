@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { API_BASE } from '../config';
 
 // Define the shape of User details
 export interface User {
@@ -60,7 +61,6 @@ interface AuthState {
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
 }
 
-const API_BASE = 'http://localhost:3000';
 
 /**
  * Zustand hook storing authentication states and core auth routines.
