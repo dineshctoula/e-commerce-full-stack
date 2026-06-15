@@ -1,58 +1,58 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* Color Palette - Premium Dark & Rich Indigo */
-  --bg-primary: #0b0c10;
-  --bg-secondary: #1f2833;
-  --text-primary: #f5f6f7;
-  --text-secondary: #c5c6c7;
-  --accent-color: #66fcf1;
-  --accent-hover: #45f3e5;
-  --accent-dim: rgba(102, 252, 241, 0.15);
-  --danger-color: #ff4d4d;
-  --success-color: #2ecc71;
-  --warning-color: #f1c40f;
+  /* Daraz Nepal Theme - Light Mode Default */
+  --bg-primary: #eff0f5;
+  --bg-secondary: #ffffff;
+  --text-primary: #212121;
+  --text-secondary: #757575;
+  --accent-color: #f57224;
+  --accent-hover: #d05a1b;
+  --accent-dim: rgba(245, 114, 36, 0.1);
+  --danger-color: #f5222d;
+  --success-color: #52c41a;
+  --warning-color: #faad14;
   
-  --border-color: #2c3540;
-  --glass-bg: rgba(31, 40, 51, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.08);
+  --border-color: #e8e8e8;
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(0, 0, 0, 0.05);
   
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
-  --shadow-accent: 0 0 15px rgba(102, 252, 241, 0.25);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 3px 6px rgba(0, 0, 0, 0.1), 0 3px 6px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.08), 0 6px 6px rgba(0, 0, 0, 0.1);
+  --shadow-accent: 0 0 12px rgba(245, 114, 36, 0.2);
   
   --font-heading: 'Outfit', 'Inter', sans-serif;
   --font-body: 'Inter', sans-serif;
   
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s ease;
-  --border-radius-sm: 6px;
-  --border-radius-md: 12px;
-  --border-radius-lg: 20px;
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
 }
 
-[data-theme="light"] {
-  /* Premium Light & Slate Palette */
-  --bg-primary: #f8fafc;
-  --bg-secondary: #ffffff;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --accent-color: #4f46e5;
-  --accent-hover: #4338ca;
-  --accent-dim: rgba(79, 70, 229, 0.1);
-  --danger-color: #ef4444;
-  --success-color: #22c55e;
-  --warning-color: #eab308;
+[data-theme="dark"] {
+  /* Daraz Nepal Theme - Dark Mode */
+  --bg-primary: #121214;
+  --bg-secondary: #1e1e24;
+  --text-primary: #f5f6f7;
+  --text-secondary: #a0a0ab;
+  --accent-color: #ff7c30;
+  --accent-hover: #f57224;
+  --accent-dim: rgba(255, 124, 48, 0.15);
+  --danger-color: #ff4d4d;
+  --success-color: #2ecc71;
+  --warning-color: #f1c40f;
   
-  --border-color: #e2e8f0;
-  --glass-bg: rgba(255, 255, 255, 0.8);
-  --glass-border: rgba(0, 0, 0, 0.06);
+  --border-color: #2d2d34;
+  --glass-bg: rgba(30, 30, 36, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.05);
   
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 8px 24px rgba(149, 157, 165, 0.15);
-  --shadow-lg: 0 16px 48px rgba(149, 157, 165, 0.25);
-  --shadow-accent: 0 0 15px rgba(79, 70, 229, 0.15);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --shadow-accent: 0 0 15px rgba(255, 124, 48, 0.25);
 }
 
 * {
@@ -1366,6 +1366,415 @@ a {
 .reviews-form-wrapper button:hover svg {
   transform: scale(1.15);
 }
+
+/* ==========================================================================
+   Daraz Nepal UI Custom Styles
+   ========================================================================== */
+
+/* Top Utility Bar */
+.top-bar {
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 11px;
+  color: var(--text-secondary);
+  padding: 6px 0;
+}
+
+.top-bar-container {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+.top-bar-link {
+  transition: color var(--transition-fast);
+}
+
+.top-bar-link:hover {
+  color: var(--accent-color);
+}
+
+/* Redesigned main navbar */
+.navbar {
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  background-color: var(--bg-secondary);
+  padding: 12px 0;
+}
+
+/* Search bar styling */
+.nav-search-form {
+  flex: 1;
+  max-width: 600px;
+  margin: 0 24px;
+}
+
+.nav-search-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  background-color: var(--bg-primary);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+  border: 1px solid transparent;
+  transition: border-color var(--transition-fast);
+}
+
+.nav-search-wrapper:focus-within {
+  border-color: var(--accent-color);
+}
+
+.nav-search-input {
+  width: 100%;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+}
+
+.nav-search-btn {
+  background-color: var(--accent-color);
+  color: #ffffff !important;
+  border: none;
+  cursor: pointer;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-fast);
+}
+
+.nav-search-btn:hover {
+  background-color: var(--accent-hover);
+}
+
+/* Homepage Daraz Layout */
+.home-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 992px) {
+  .home-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.home-categories-panel {
+  background-color: var(--bg-secondary);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color);
+  padding: 12px 0;
+  height: 100%;
+}
+
+.home-category-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.home-category-item:hover {
+  background-color: var(--bg-primary);
+  color: var(--accent-color);
+  padding-left: 24px;
+}
+
+/* Main Interactive Slider */
+.home-slider {
+  position: relative;
+  background: linear-gradient(135deg, #f57224 0%, #ff9e66 100%);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+  height: 380px;
+  display: flex;
+  align-items: center;
+  padding: 48px;
+  color: #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+
+.slider-content {
+  max-width: 480px;
+  text-align: left;
+  z-index: 2;
+}
+
+.slider-tag {
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+
+.slider-title {
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 16px;
+  font-family: var(--font-heading);
+}
+
+.slider-desc {
+  font-size: 15px;
+  opacity: 0.95;
+  margin-bottom: 24px;
+}
+
+.slider-btn {
+  background-color: #ffffff;
+  color: #f57224;
+  font-weight: 700;
+  padding: 12px 28px;
+  border-radius: var(--border-radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all var(--transition-fast);
+}
+
+.slider-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  background-color: #fcfcfc;
+}
+
+.slider-bg-circle {
+  position: absolute;
+  right: -100px;
+  bottom: -100px;
+  width: 500px;
+  height: 500px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.slider-bg-circle-small {
+  position: absolute;
+  right: 150px;
+  top: -50px;
+  width: 250px;
+  height: 250px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+/* Flash Sale styling */
+.flash-sale-box {
+  background-color: var(--bg-secondary);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.flash-sale-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.flash-sale-title-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.flash-sale-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--accent-color);
+  font-family: var(--font-heading);
+}
+
+.countdown-timer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.countdown-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.countdown-box {
+  background-color: var(--accent-color);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 4px 6px;
+  border-radius: var(--border-radius-sm);
+  min-width: 28px;
+  text-align: center;
+}
+
+.countdown-divider {
+  font-weight: 800;
+  color: var(--accent-color);
+}
+
+/* Flash Sale product list */
+.flash-sale-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.flash-sale-card {
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  overflow: hidden;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.flash-sale-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent-color);
+}
+
+.flash-sale-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: var(--accent-color);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 2px;
+  z-index: 5;
+}
+
+.flash-sale-price-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+
+.flash-sale-current-price {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--accent-color);
+}
+
+.flash-sale-original-price {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-decoration: line-through;
+}
+
+/* Stock status progress bar */
+.stock-progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stock-progress-bar {
+  height: 6px;
+  background-color: var(--border-color);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.stock-progress-fill {
+  height: 100%;
+  background-color: var(--accent-color);
+  border-radius: 3px;
+}
+
+.stock-progress-text {
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-align: right;
+}
+
+/* Just for you grid header */
+.section-header {
+  text-align: left;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+}
+
+/* Partner logos section */
+.partners-block {
+  margin-top: 48px;
+  background-color: var(--bg-secondary);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color);
+  padding: 24px;
+  text-align: center;
+}
+
+.partners-title {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  letter-spacing: 0.5px;
+}
+
+.partners-flex {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.partner-logo {
+  font-size: 18px;
+  font-weight: 800;
+  opacity: 0.6;
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+}
+
+.partner-logo.esewa { color: #60bb46; opacity: 0.8; }
+.partner-logo.imepay { color: #ed1c24; opacity: 0.8; }
+.partner-logo.stripe { color: #6772e5; opacity: 0.8; }
+.partner-logo.cod { color: var(--accent-color); opacity: 0.8; }
+
 
 
 

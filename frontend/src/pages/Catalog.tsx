@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useProductStore } from '../store/products';
 import type { ProductFilters } from '../store/products';
 import { Search, SlidersHorizontal, ChevronLeft, ChevronRight, Tag, Info, Heart, Star } from 'lucide-react';
@@ -12,6 +12,7 @@ import { useCartStore } from '../store/cart';
  */
 export const Catalog: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { products, loading, error, page, totalPages, fetchProducts } = useProductStore();
   const { wishlist, toggleWishlist } = useCartStore();
 
@@ -19,66 +20,98 @@ export const Catalog: React.FC = () => {
   const isWishlisted = (productId: string) => 
     wishlist.some((item) => item.id === productId);
 
-  // Local state for filter inputs
-  const [searchVal, setSearchVal] = useState('');
-  const [categoryVal, setCategoryVal] = useState('');
-  const [minPriceVal, setMinPriceVal] = useState('');
-  const [maxPriceVal, setMaxPriceVal] = useState('');
-  const [sortByVal, setSortByVal] = useState('newest');
+  // Local state for filter inputs - initialized from search parameters
+  const [searchVal, setSearchVal] = useState(searchParams.get('search') || '');
+  const [categoryVal, setCategoryVal] = useState(searchParams.get('category') || '');
+  const [minPriceVal, setMinPriceVal] = useState(searchParams.get('minPrice') || '');
+  const [maxPriceVal, setMaxPriceVal] = useState(searchParams.get('maxPrice') || '');
+  const [sortByVal, setSortByVal] = useState(searchParams.get('sortBy') || 'newest');
 
   // Available categories in our seed and backend
   const categories = ['All', 'Accessories', 'Electronics', 'Clothing', 'Home & Kitchen'];
 
-  // Trigger search requests using current filters
-  const applyFilters = useCallback((targetPage?: number, currentSortByVal?: string) => {
+  // Sync state and fetch products when searchParams change
+  useEffect(() => {
+    const search = searchParams.get('search') || '';
+    const category = searchParams.get('category') || '';
+    const minPrice = searchParams.get('minPrice') || '';
+    const maxPrice = searchParams.get('maxPrice') || '';
+    const sortBy = searchParams.get('sortBy') || 'newest';
+    const pageNum = parseInt(searchParams.get('page') || '1', 10);
+
+    setSearchVal(search);
+    setCategoryVal(category);
+    setMinPriceVal(minPrice);
+    setMaxPriceVal(maxPrice);
+    setSortByVal(sortBy);
+
     const filters: ProductFilters = {
-      page: targetPage ?? 1,
+      page: pageNum,
       limit: 8,
     };
 
-    if (searchVal.trim()) filters.search = searchVal.trim();
-    if (categoryVal && categoryVal !== 'All') filters.category = categoryVal;
-    if (minPriceVal) filters.minPrice = minPriceVal;
-    if (maxPriceVal) filters.maxPrice = maxPriceVal;
+    if (search.trim()) filters.search = search.trim();
+    if (category && category !== 'All') filters.category = category;
+    if (minPrice) filters.minPrice = minPrice;
+    if (maxPrice) filters.maxPrice = maxPrice;
 
-    const sortTerm = currentSortByVal ?? sortByVal;
-    if (sortTerm === 'newest') {
+    if (sortBy === 'newest') {
       filters.sortBy = 'newest';
       filters.sortOrder = 'desc';
-    } else if (sortTerm === 'price-asc') {
+    } else if (sortBy === 'price-asc') {
       filters.sortBy = 'price';
       filters.sortOrder = 'asc';
-    } else if (sortTerm === 'price-desc') {
+    } else if (sortBy === 'price-desc') {
       filters.sortBy = 'price';
       filters.sortOrder = 'desc';
-    } else if (sortTerm === 'rating-desc') {
+    } else if (sortBy === 'rating-desc') {
       filters.sortBy = 'rating';
       filters.sortOrder = 'desc';
-    } else if (sortTerm === 'title-asc') {
+    } else if (sortBy === 'title-asc') {
       filters.sortBy = 'title';
       filters.sortOrder = 'asc';
-    } else if (sortTerm === 'title-desc') {
+    } else if (sortBy === 'title-desc') {
       filters.sortBy = 'title';
       filters.sortOrder = 'desc';
     }
 
     void fetchProducts(filters);
-  }, [searchVal, categoryVal, minPriceVal, maxPriceVal, sortByVal, fetchProducts]);
+  }, [searchParams, fetchProducts]);
 
-  // Initial load
-  useEffect(() => {
-    applyFilters(1);
-  }, [categoryVal, applyFilters]); // Fetch instantly when category changes
+  // Helper to update url search parameters
+  const updateParams = (newParams: Record<string, string>) => {
+    setSearchParams((prev) => {
+      Object.entries(newParams).forEach(([key, val]) => {
+        if (val) {
+          prev.set(key, val);
+        } else {
+          prev.delete(key);
+        }
+      });
+      return prev;
+    });
+  };
+
+  const applyFilters = () => {
+    updateParams({
+      search: searchVal.trim(),
+      category: categoryVal,
+      minPrice: minPriceVal,
+      maxPrice: maxPriceVal,
+      sortBy: sortByVal,
+      page: '1',
+    });
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    applyFilters(1);
+    applyFilters();
   };
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newVal = e.target.value;
     setSortByVal(newVal);
-    applyFilters(1, newVal);
+    updateParams({ sortBy: newVal, page: '1' });
   };
 
   const handleClearFilters = () => {
@@ -87,13 +120,12 @@ export const Catalog: React.FC = () => {
     setMinPriceVal('');
     setMaxPriceVal('');
     setSortByVal('newest');
-    // Call fetchProducts directly with clean parameters to bypass state update delays
-    void fetchProducts({ page: 1, limit: 8, sortBy: 'newest', sortOrder: 'desc' });
+    setSearchParams({});
   };
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
-      applyFilters(newPage);
+      updateParams({ page: newPage.toString() });
     }
   };
 
@@ -151,7 +183,11 @@ export const Catalog: React.FC = () => {
                     key={cat}
                     type="button"
                     className={`category-chip ${isSelected ? 'active' : ''}`}
-                    onClick={() => setCategoryVal(cat === 'All' ? '' : cat)}
+                    onClick={() => {
+                      const nextCat = cat === 'All' ? '' : cat;
+                      setCategoryVal(nextCat);
+                      updateParams({ category: nextCat, page: '1' });
+                    }}
                   >
                     <Tag size={12} style={{ marginRight: '6px' }} />
                     <span>{displayName}</span>
@@ -209,7 +245,7 @@ export const Catalog: React.FC = () => {
               type="button"
               className="btn btn-primary"
               style={{ flex: 1, padding: '8px 12px', fontSize: '13px' }}
-              onClick={() => applyFilters(1)}
+              onClick={() => applyFilters()}
             >
               Apply Filters
             </button>
