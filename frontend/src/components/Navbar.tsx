@@ -50,7 +50,7 @@ export const Navbar: React.FC = () => {
       <div className="top-bar">
         <div className="container top-bar-container">
           <a href="#" className="top-bar-link">Become a Seller</a>
-          <a href="#" className="top-bar-link">Daraz Affiliate Program</a>
+          <a href="#" className="top-bar-link">Hamro Pasal Affiliate Program</a>
           <a href="#" className="top-bar-link">Help & Support</a>
           <a href="#" className="top-bar-link">Track My Order</a>
         </div>
@@ -61,7 +61,7 @@ export const Navbar: React.FC = () => {
           {/* Brand Logo - Daraz Style */}
           <Link to="/" className="logo" style={{ color: 'var(--accent-color)', fontWeight: 900 }}>
             <ShoppingBag size={26} fill="var(--accent-color)" style={{ color: '#ffffff' }} />
-            <span>daraz</span>
+            <span>Hamro Pasal</span>
           </Link>
 
           {/* Center Search Input */}
@@ -69,7 +69,7 @@ export const Navbar: React.FC = () => {
             <div className="nav-search-wrapper">
               <input
                 type="text"
-                placeholder="Search in Daraz..."
+                placeholder="Search in Hamro Pasal..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="nav-search-input"

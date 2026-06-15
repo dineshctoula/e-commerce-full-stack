@@ -34,12 +34,12 @@ export const generateInvoicePdf = (order: Order, userName?: string) => {
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(22);
-  doc.text('E-COM STORE', 15, 20);
+  doc.text('HAMRO PASAL', 15, 20);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.text('Premium Electronics & Goods', 15, 26);
-  doc.text('support@ecom.com | www.ecom.com', 15, 31);
+  doc.text('Your Friendly Online Marketplace', 15, 26);
+  doc.text('support@hamropasal.com | www.hamropasal.com', 15, 31);
 
   // Invoice Title
   doc.setFont('helvetica', 'bold');
@@ -191,8 +191,8 @@ export const generateInvoicePdf = (order: Order, userName?: string) => {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
   doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
-  doc.text('Thank you for shopping with E-COM Store!', 105, 281, { align: 'center' });
-  doc.text('If you have any questions about this invoice, please contact support@ecom.com', 105, 285, { align: 'center' });
+  doc.text('Thank you for shopping with Hamro Pasal!', 105, 281, { align: 'center' });
+  doc.text('If you have any questions about this invoice, please contact support@hamropasal.com', 105, 285, { align: 'center' });
 
   // Save the PDF
   doc.save(`invoice_${order.id}.pdf`);
