@@ -32,7 +32,7 @@ async function bootstrap() {
       callback: (err: Error | null, allow?: boolean) => void,
     ) => {
       // Allow requests with no origin (like mobile apps, curl, or postman) or any localhost port
-      if (!origin || /^http:\/\/localhost:\d+$/.test(origin)) {
+      if (!origin || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
