@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCartStore } from '../store/cart';
 import { useOrderStore } from '../store/orders';
+import type { Order } from '../store/orders';
 import { MapPin, CreditCard, CheckCircle, ArrowRight, ArrowLeft, ShoppingBag, Tag } from 'lucide-react';
+import { generateInvoicePdf } from '../utils/invoice';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useCouponStore } from '../store/coupons';
@@ -30,7 +32,8 @@ const CheckoutContent: React.FC = () => {
 
   // Active step state: 1 = Shipping, 2 = Review, 3 = Success
   const [step, setStep] = useState<number>(1);
-  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
+  const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
+  const createdOrderId = createdOrder?.id || null;
   const [paymentLoading, setPaymentLoading] = useState(false);
 
   // Form states for Shipping details
@@ -131,7 +134,7 @@ const CheckoutContent: React.FC = () => {
 
       // If COD, bypass Stripe
       if (paymentMethod === 'cod') {
-        setCreatedOrderId(orderResult.id);
+        setCreatedOrder(orderResult);
         clearCart();
         setStep(3);
         setPaymentLoading(false);
@@ -177,7 +180,7 @@ const CheckoutContent: React.FC = () => {
         // 4. Confirm payment status on the backend to update order to PROCESSING
         const confirmResult = await confirmOrderPayment(orderResult.id, paymentIntent.id);
         if (confirmResult) {
-          setCreatedOrderId(orderResult.id);
+          setCreatedOrder(orderResult);
           clearCart();
           setStep(3);
         } else {
@@ -622,13 +625,24 @@ const CheckoutContent: React.FC = () => {
               <strong style={{ fontSize: '15px', color: 'var(--accent-color)', fontFamily: 'monospace' }}>{createdOrderId}</strong>
             </div>
 
-            <div style={{ display: 'flex', gap: '16px', width: '100%' }}>
-              <button className="btn btn-primary" style={{ flex: 1, justifyContent: 'center' }} onClick={() => navigate('/profile')}>
-                View Order History
-              </button>
-              <button className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center' }} onClick={() => navigate('/shop')}>
-                Continue Shopping
-              </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', marginTop: '8px' }}>
+              {createdOrder && (
+                <button
+                  className="btn btn-primary"
+                  style={{ width: '100%', justifyContent: 'center', padding: '12px' }}
+                  onClick={() => generateInvoicePdf(createdOrder, shippingDetails.fullName)}
+                >
+                  Download Invoice
+                </button>
+              )}
+              <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
+                <button className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center' }} onClick={() => navigate('/profile')}>
+                  View Order History
+                </button>
+                <button className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center' }} onClick={() => navigate('/shop')}>
+                  Continue Shopping
+                </button>
+              </div>
             </div>
           </section>
         </div>
