@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '../store/auth';
 import { useOrderStore } from '../store/orders';
 import { User, Mail, Shield, CheckCircle, Calendar, ShoppingBag, MapPin, Lock, Settings } from 'lucide-react';
+import { generateInvoicePdf } from '../utils/invoice';
 
 export const Profile: React.FC = () => {
   const { user, updateProfile, changePassword } = useAuthStore();
@@ -429,7 +430,7 @@ export const Profile: React.FC = () => {
                       </div>
                     ) : null}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '14px', fontWeight: 700, borderTop: '1px solid rgba(255,255,255,0.02)', paddingTop: '8px' }}>
-                      <div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
                         {(order.status === 'PENDING' || order.status === 'PROCESSING') && (
                           <button
                             type="button"
@@ -440,6 +441,14 @@ export const Profile: React.FC = () => {
                             Cancel Order
                           </button>
                         )}
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          style={{ padding: '6px 12px', fontSize: '12px' }}
+                          onClick={() => generateInvoicePdf(order, user?.name || undefined)}
+                        >
+                          Download Invoice
+                        </button>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Grand Total:</span>
