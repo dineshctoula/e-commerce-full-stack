@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useOrderStore } from '../store/orders';
 import { useProductStore } from '../store/products';
+import { generateInvoicePdf } from '../utils/invoice';
 import {
   TrendingUp,
   ShoppingBag,
@@ -703,6 +704,14 @@ export const AdminDashboard: React.FC = () => {
                                   <option value="CANCELLED">Cancelled</option>
                                 </select>
                               </div>
+                              <button
+                                type="button"
+                                className="btn btn-secondary"
+                                style={{ marginTop: '4px', padding: '10px 16px', fontSize: '13px', justifyContent: 'center', width: '100%' }}
+                                onClick={() => generateInvoicePdf(order as any, (order as any).user?.name || undefined)}
+                              >
+                                Download Invoice
+                              </button>
                               <div style={{ marginTop: '8px', padding: '10px 12px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', display: 'flex', gap: '8px', alignItems: 'center' }}>
                                 <AlertTriangle size={14} color="var(--accent-color)" />
                                 <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
