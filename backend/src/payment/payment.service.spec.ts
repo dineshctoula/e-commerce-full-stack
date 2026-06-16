@@ -285,4 +285,52 @@ describe('PaymentService', () => {
       });
     });
   });
+
+  describe('imepay integration', () => {
+    const userId = 'user-123';
+    const orderId = 'order-123';
+    const mockOrder = {
+      id: orderId,
+      userId,
+      totalAmount: 120.5,
+      status: 'PENDING',
+    };
+
+    describe('createImepayIntent', () => {
+      it('should initialize imepay payment successfully', async () => {
+        mockPrismaService.order.findUnique.mockResolvedValue(mockOrder);
+
+        const result = await service.createImepayIntent(userId, orderId);
+
+        expect(result.token).toBeDefined();
+        expect(result.redirectUrl).toContain('mock-gateway');
+        expect(result.redirectUrl).toContain(orderId);
+      });
+    });
+
+    describe('confirmImepayPayment', () => {
+      it('should confirm imepay payment and transition order to PROCESSING', async () => {
+        mockPrismaService.order.findUnique.mockResolvedValue(mockOrder);
+        mockPrismaService.order.update.mockResolvedValue({
+          ...mockOrder,
+          status: 'PROCESSING',
+          paymentMethod: 'IMEPAY',
+          paymentId: 'imepay_txn_123',
+        });
+
+        const result = await service.confirmImepayPayment(userId, orderId, 'imepay_txn_123');
+
+        expect(mockPrismaService.order.update).toHaveBeenCalledWith({
+          where: { id: orderId },
+          data: {
+            status: 'PROCESSING',
+            paymentMethod: 'IMEPAY',
+            paymentId: 'imepay_txn_123',
+          },
+          include: { items: { include: { product: true } } },
+        });
+        expect(result.status).toBe('PROCESSING');
+      });
+    });
+  });
 });

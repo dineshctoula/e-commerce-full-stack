@@ -3,6 +3,7 @@ import { GetCurrentUserId } from '../auth/decorators/get-current-user-id.decorat
 import { CreateIntentDto } from './dto/create-intent.dto';
 import { ConfirmPaymentDto } from './dto/confirm-payment.dto';
 import { ConfirmEsewaDto } from './dto/confirm-esewa.dto';
+import { ConfirmImepayDto } from './dto/confirm-imepay.dto';
 import { PaymentService } from './payment.service';
 
 /**
@@ -69,5 +70,29 @@ export class PaymentController {
     @Body() dto: ConfirmEsewaDto,
   ) {
     return this.paymentService.confirmEsewaPayment(userId, dto.data);
+  }
+
+  /**
+   * Generates IME Pay payment token and redirect URL for a pending order.
+   */
+  @Post('imepay/create-intent')
+  @HttpCode(HttpStatus.OK)
+  createImepayIntent(
+    @GetCurrentUserId() userId: string,
+    @Body() dto: CreateIntentDto,
+  ) {
+    return this.paymentService.createImepayIntent(userId, dto.orderId);
+  }
+
+  /**
+   * Confirms IME Pay payment transaction.
+   */
+  @Post('imepay/confirm')
+  @HttpCode(HttpStatus.OK)
+  confirmImepay(
+    @GetCurrentUserId() userId: string,
+    @Body() dto: ConfirmImepayDto,
+  ) {
+    return this.paymentService.confirmImepayPayment(userId, dto.orderId, dto.refId);
   }
 }

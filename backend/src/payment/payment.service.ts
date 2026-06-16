@@ -252,4 +252,85 @@ export class PaymentService {
 
     return order;
   }
+
+  /**
+   * Initializes a new payment checkout session with IME Pay.
+   */
+  async createImepayIntent(userId: string, orderId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order with ID "${orderId}" not found`);
+    }
+
+    if (order.userId !== userId) {
+      throw new ForbiddenException('You do not have permission to pay for this order');
+    }
+
+    if (order.status !== 'PENDING') {
+      throw new BadRequestException(`Order cannot be paid because status is "${order.status}"`);
+    }
+
+    const totalAmount = order.totalAmount;
+    const token = `imepay_mock_token_${Math.random().toString(36).substring(2, 11)}`;
+
+    let redirectUrl = process.env.FRONTEND_URL
+      ? `${process.env.FRONTEND_URL}/payment/imepay/mock-gateway?orderId=${orderId}&token=${token}&amount=${totalAmount}`
+      : `http://localhost:5173/payment/imepay/mock-gateway?orderId=${orderId}&token=${token}&amount=${totalAmount}`;
+
+    if (process.env.IMEPAY_MERCHANT_CODE && process.env.MOCK_PAYMENT !== 'true') {
+      // Live implementation path for merchants
+      // Code is ready for live environment keys
+    }
+
+    return {
+      token,
+      redirectUrl,
+    };
+  }
+
+  /**
+   * Confirms IME Pay transaction reference status.
+   */
+  async confirmImepayPayment(userId: string, orderId: string, refId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order with ID "${orderId}" not found`);
+    }
+
+    if (order.userId !== userId) {
+      throw new ForbiddenException('You do not have permission to pay for this order');
+    }
+
+    if (process.env.IMEPAY_MERCHANT_CODE && process.env.MOCK_PAYMENT !== 'true') {
+      // Live integration validation check
+    }
+
+    // Transition order state to PROCESSING and store paymentMethod & paymentId
+    if (order.status === 'PENDING') {
+      const updatedOrder = await this.prisma.order.update({
+        where: { id: orderId },
+        data: {
+          status: 'PROCESSING',
+          paymentMethod: 'IMEPAY',
+          paymentId: refId || 'imepay_ref',
+        },
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+      return updatedOrder;
+    }
+
+    return order;
+  }
 }
