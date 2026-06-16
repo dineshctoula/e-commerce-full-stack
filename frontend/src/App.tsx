@@ -127,7 +127,8 @@ function App() {
       {/* Application Footer */}
       <footer className="footer">
         <div className="container">
-          <p>&copy; {new Date().getFullYear()} E-Shop Monorepo. Built for premium scalability.</p>
+          <p>&copy; {new Date().getFullYear()} Hamro Pasal. Built for Nepalese users.</p>
+          <p>Developed by : Dinesh Sitoula</p>
         </div>
       </footer>
     </Router>
