@@ -15,6 +15,9 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard').then((m) => (
 const Catalog = lazy(() => import('./pages/Catalog').then((m) => ({ default: m.Catalog })));
 const ProductDetail = lazy(() => import('./pages/ProductDetail').then((m) => ({ default: m.ProductDetail })));
 const Checkout = lazy(() => import('./pages/Checkout').then((m) => ({ default: m.Checkout })));
+const EsewaSuccess = lazy(() => import('./pages/EsewaSuccess').then((m) => ({ default: m.EsewaSuccess })));
+const ImepaySuccess = lazy(() => import('./pages/ImepaySuccess').then((m) => ({ default: m.ImepaySuccess })));
+const ImepayMockGateway = lazy(() => import('./pages/ImepayMockGateway').then((m) => ({ default: m.ImepayMockGateway })));
 
 /**
  * Root Application Component.
@@ -74,6 +77,36 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Checkout />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected eSewa Success Route */}
+            <Route
+              path="/payment/esewa/success"
+              element={
+                <ProtectedRoute>
+                  <EsewaSuccess />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected IME Pay Success Route */}
+            <Route
+              path="/payment/imepay/success"
+              element={
+                <ProtectedRoute>
+                  <ImepaySuccess />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected IME Pay Mock Gateway Route */}
+            <Route
+              path="/payment/imepay/mock-gateway"
+              element={
+                <ProtectedRoute>
+                  <ImepayMockGateway />
                 </ProtectedRoute>
               }
             />

@@ -93,6 +93,22 @@ interface OrderState {
    */
   confirmPayment: (orderId: string, paymentIntentId: string) => Promise<boolean>;
   /**
+   * Generates redirect parameters for eSewa Sandbox checkout.
+   */
+  createEsewaIntent: (orderId: string) => Promise<any | null>;
+  /**
+   * Confirms eSewa payment redirection payload on backend.
+   */
+  confirmEsewaPayment: (data: string) => Promise<boolean>;
+  /**
+   * Generates payment redirect details for IME Pay.
+   */
+  createImepayIntent: (orderId: string) => Promise<{ token: string; redirectUrl: string } | null>;
+  /**
+   * Confirms IME Pay transaction refId status.
+   */
+  confirmImepayPayment: (orderId: string, refId: string) => Promise<boolean>;
+  /**
    * Admin-only statistics analytics retrieval.
    */
   fetchAdminStats: () => Promise<void>;
@@ -226,6 +242,102 @@ export const useOrderStore = create<OrderState>((set) => ({
       return true;
     } catch (err: any) {
       set({ error: err.message || 'Failed to confirm payment on backend.' });
+      return false;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  createEsewaIntent: async (orderId) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await fetch(`${API_BASE}/payments/esewa/create-intent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to initialize eSewa payment.');
+      }
+      return data;
+    } catch (err: any) {
+      set({ error: err.message || 'eSewa initiation failed.' });
+      return null;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  confirmEsewaPayment: async (data) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await fetch(`${API_BASE}/payments/esewa/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data }),
+        credentials: 'include',
+      });
+      const resData = await res.json();
+      if (!res.ok) {
+        throw new Error(resData.message || 'eSewa payment confirmation failed.');
+      }
+      set((state) => ({
+        orders: state.orders.map((o) => o.id === resData.id ? { ...o, status: 'PROCESSING' } : o),
+        error: null,
+      }));
+      return true;
+    } catch (err: any) {
+      set({ error: err.message || 'Failed to confirm eSewa payment.' });
+      return false;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  createImepayIntent: async (orderId) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await fetch(`${API_BASE}/payments/imepay/create-intent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to initialize IME Pay payment.');
+      }
+      return data;
+    } catch (err: any) {
+      set({ error: err.message || 'IME Pay initiation failed.' });
+      return null;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  confirmImepayPayment: async (orderId, refId) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await fetch(`${API_BASE}/payments/imepay/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, refId }),
+        credentials: 'include',
+      });
+      const resData = await res.json();
+      if (!res.ok) {
+        throw new Error(resData.message || 'IME Pay payment confirmation failed.');
+      }
+      set((state) => ({
+        orders: state.orders.map((o) => o.id === orderId ? { ...o, status: 'PROCESSING' } : o),
+        error: null,
+      }));
+      return true;
+    } catch (err: any) {
+      set({ error: err.message || 'Failed to confirm IME Pay payment.' });
       return false;
     } finally {
       set({ loading: false });
