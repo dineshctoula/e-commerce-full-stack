@@ -19,7 +19,7 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 
 const CheckoutContent: React.FC = () => {
   const navigate = useNavigate();
   const { cart, clearCart } = useCartStore();
-  const { createOrder, loading, error, clearError, createPaymentIntent, confirmPayment: confirmOrderPayment } = useOrderStore();
+  const { createOrder, loading, error, clearError, createPaymentIntent, confirmPayment: confirmOrderPayment, createEsewaIntent, createImepayIntent } = useOrderStore();
   const {
     appliedCoupon,
     isValidating,
@@ -138,6 +138,37 @@ const CheckoutContent: React.FC = () => {
         clearCart();
         setStep(3);
         setPaymentLoading(false);
+        return;
+      }
+
+      // If eSewa, generate parameters and redirect to sandbox
+      if (paymentMethod === 'esewa') {
+        const esewaParams = await createEsewaIntent(orderResult.id);
+        if (!esewaParams) {
+          throw new Error('Failed to initialize eSewa payment details.');
+        }
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'https://rc-epay.esewa.com.np/api/epay/main/v2/form';
+        Object.entries(esewaParams).forEach(([key, val]) => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = val as string;
+          form.appendChild(input);
+        });
+        document.body.appendChild(form);
+        form.submit();
+        return;
+      }
+
+      // If IME Pay, redirect to payment gateway / simulated portal
+      if (paymentMethod === 'imepay') {
+        const imepayParams = await createImepayIntent(orderResult.id);
+        if (!imepayParams || !imepayParams.redirectUrl) {
+          throw new Error('Failed to initialize IME Pay payment details.');
+        }
+        window.location.href = imepayParams.redirectUrl;
         return;
       }
 
@@ -543,6 +574,36 @@ const CheckoutContent: React.FC = () => {
                     </div>
                   </div>
                 )}
+
+                <label className={`payment-option glass ${paymentMethod === 'esewa' ? 'selected' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', backgroundColor: paymentMethod === 'esewa' ? 'rgba(255, 255, 255, 0.05)' : 'transparent' }}>
+                  <input
+                    type="radio"
+                    name="payment"
+                    value="esewa"
+                    checked={paymentMethod === 'esewa'}
+                    onChange={() => setPaymentMethod('esewa')}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <div>
+                    <strong style={{ display: 'block', fontSize: '14px' }}>eSewa Sandbox Payment</strong>
+                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Pay using your eSewa digital wallet (Sandbox).</span>
+                  </div>
+                </label>
+
+                <label className={`payment-option glass ${paymentMethod === 'imepay' ? 'selected' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', backgroundColor: paymentMethod === 'imepay' ? 'rgba(255, 255, 255, 0.05)' : 'transparent' }}>
+                  <input
+                    type="radio"
+                    name="payment"
+                    value="imepay"
+                    checked={paymentMethod === 'imepay'}
+                    onChange={() => setPaymentMethod('imepay')}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <div>
+                    <strong style={{ display: 'block', fontSize: '14px' }}>IME Pay Sandbox Payment</strong>
+                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Pay using your IME Pay digital wallet (Sandbox).</span>
+                  </div>
+                </label>
 
                 <label className={`payment-option glass ${paymentMethod === 'cod' ? 'selected' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', backgroundColor: paymentMethod === 'cod' ? 'rgba(255, 255, 255, 0.05)' : 'transparent' }}>
                   <input
