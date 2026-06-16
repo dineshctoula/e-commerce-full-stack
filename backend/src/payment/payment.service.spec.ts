@@ -143,7 +143,11 @@ describe('PaymentService', () => {
       expect(mockStripe.paymentIntents.retrieve).toHaveBeenCalledWith(paymentIntentId);
       expect(mockPrismaService.order.update).toHaveBeenCalledWith({
         where: { id: orderId },
-        data: { status: 'PROCESSING' },
+        data: {
+          status: 'PROCESSING',
+          paymentMethod: 'STRIPE',
+          paymentId: paymentIntentId,
+        },
         include: { items: { include: { product: true } } },
       });
       expect(result.status).toBe('PROCESSING');
@@ -196,6 +200,89 @@ describe('PaymentService', () => {
       await expect(
         service.confirmPayment(userId, orderId, paymentIntentId),
       ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('esewa integration', () => {
+    const userId = 'user-123';
+    const orderId = 'order-123';
+    const mockOrder = {
+      id: orderId,
+      userId,
+      totalAmount: 120.5,
+      status: 'PENDING',
+    };
+
+    describe('generateEsewaSignature', () => {
+      it('should generate a valid HMAC-SHA256 signature in Base64', () => {
+        const signature = service.generateEsewaSignature('120.50', orderId, 'EPAYTEST');
+        expect(signature).toBeDefined();
+        expect(typeof signature).toBe('string');
+      });
+    });
+
+    describe('createEsewaIntent', () => {
+      it('should generate redirect fields successfully', async () => {
+        mockPrismaService.order.findUnique.mockResolvedValue(mockOrder);
+        const result = await service.createEsewaIntent(userId, orderId);
+
+        expect(result.amount).toBe('120.50');
+        expect(result.total_amount).toBe('120.50');
+        expect(result.transaction_uuid).toBe(orderId);
+        expect(result.product_code).toBe('EPAYTEST');
+        expect(result.signature).toBeDefined();
+      });
+    });
+
+    describe('confirmEsewaPayment', () => {
+      it('should verify payment and transition order status to PROCESSING', async () => {
+        process.env.MOCK_PAYMENT = 'true';
+        mockPrismaService.order.findUnique.mockResolvedValue(mockOrder);
+        mockPrismaService.order.update.mockResolvedValue({
+          ...mockOrder,
+          status: 'PROCESSING',
+          paymentMethod: 'ESEWA',
+          paymentId: 'esewa_txn_123',
+        });
+
+        const esewaData = {
+          transaction_code: 'esewa_txn_123',
+          status: 'COMPLETE',
+          total_amount: '120.50',
+          transaction_uuid: orderId,
+          product_code: 'EPAYTEST',
+        };
+        const encodedData = Buffer.from(JSON.stringify(esewaData)).toString('base64');
+
+        const result = await service.confirmEsewaPayment(userId, encodedData);
+
+        expect(mockPrismaService.order.update).toHaveBeenCalledWith({
+          where: { id: orderId },
+          data: {
+            status: 'PROCESSING',
+            paymentMethod: 'ESEWA',
+            paymentId: 'esewa_txn_123',
+          },
+          include: { items: { include: { product: true } } },
+        });
+        expect(result.status).toBe('PROCESSING');
+      });
+
+      it('should throw BadRequestException if amount mismatches', async () => {
+        mockPrismaService.order.findUnique.mockResolvedValue(mockOrder);
+        const esewaData = {
+          transaction_code: 'esewa_txn_123',
+          status: 'COMPLETE',
+          total_amount: '100.00',
+          transaction_uuid: orderId,
+          product_code: 'EPAYTEST',
+        };
+        const encodedData = Buffer.from(JSON.stringify(esewaData)).toString('base64');
+
+        await expect(
+          service.confirmEsewaPayment(userId, encodedData),
+        ).rejects.toThrow(BadRequestException);
+      });
     });
   });
 });

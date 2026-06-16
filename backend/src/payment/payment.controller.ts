@@ -2,6 +2,7 @@ import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { GetCurrentUserId } from '../auth/decorators/get-current-user-id.decorator';
 import { CreateIntentDto } from './dto/create-intent.dto';
 import { ConfirmPaymentDto } from './dto/confirm-payment.dto';
+import { ConfirmEsewaDto } from './dto/confirm-esewa.dto';
 import { PaymentService } from './payment.service';
 
 /**
@@ -44,5 +45,29 @@ export class PaymentController {
     @Body() dto: ConfirmPaymentDto,
   ) {
     return this.paymentService.confirmPayment(userId, dto.orderId, dto.paymentIntentId);
+  }
+
+  /**
+   * Generates eSewa redirect parameters for a pending order.
+   */
+  @Post('esewa/create-intent')
+  @HttpCode(HttpStatus.OK)
+  createEsewaIntent(
+    @GetCurrentUserId() userId: string,
+    @Body() dto: CreateIntentDto,
+  ) {
+    return this.paymentService.createEsewaIntent(userId, dto.orderId);
+  }
+
+  /**
+   * Confirms eSewa payment redirection payload.
+   */
+  @Post('esewa/confirm')
+  @HttpCode(HttpStatus.OK)
+  confirmEsewa(
+    @GetCurrentUserId() userId: string,
+    @Body() dto: ConfirmEsewaDto,
+  ) {
+    return this.paymentService.confirmEsewaPayment(userId, dto.data);
   }
 }
