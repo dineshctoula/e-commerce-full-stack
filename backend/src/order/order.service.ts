@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException, InternalServerErrorException, Logger, HttpException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 
@@ -8,6 +8,8 @@ import { CreateOrderDto } from './dto/create-order.dto';
  */
 @Injectable()
 export class OrderService {
+  private readonly logger = new Logger(OrderService.name);
+
   constructor(private prisma: PrismaService) {}
 
   /**
@@ -17,7 +19,8 @@ export class OrderService {
   async createOrder(userId: string, dto: CreateOrderDto) {
     const productIds = [...new Set(dto.items.map((item) => item.productId))];
 
-    return this.prisma.$transaction(async (tx) => {
+    try {
+      return await this.prisma.$transaction(async (tx) => {
       const products = await tx.product.findMany({
         where: {
           id: { in: productIds },
@@ -145,6 +148,15 @@ export class OrderService {
         },
       });
     });
+    } catch (error: any) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      this.logger.error(`Failed to create order: ${error.message}`, error.stack);
+      throw new InternalServerErrorException(
+        `Failed to process order creation. Database error occurred: ${error.message}`
+      );
+    }
   }
 
   /**
@@ -153,9 +165,29 @@ export class OrderService {
    * - Regular users only get access to their own orders.
    */
   async getOrders(userId: string, role: string) {
-    if (role === 'ADMIN') {
-      // Admins see all orders in the system, sorted by newest first
-      return this.prisma.order.findMany({
+    try {
+      if (role === 'ADMIN') {
+        // Admins see all orders in the system, sorted by newest first
+        return await this.prisma.order.findMany({
+          include: {
+            items: {
+              include: {
+                product: true,
+              },
+            },
+            coupon: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        });
+      }
+
+      // Regular users see only their own orders
+      return await this.prisma.order.findMany({
+        where: {
+          userId,
+        },
         include: {
           items: {
             include: {
@@ -168,25 +200,12 @@ export class OrderService {
           createdAt: 'desc',
         },
       });
+    } catch (error: any) {
+      this.logger.error(`Failed to retrieve orders: ${error.message}`, error.stack);
+      throw new InternalServerErrorException(
+        `Failed to retrieve orders from database. This could be due to an unapplied database migration or database connection issue. Details: ${error.message}`
+      );
     }
-
-    // Regular users see only their own orders
-    return this.prisma.order.findMany({
-      where: {
-        userId,
-      },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-        coupon: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
   }
 
   /**
