@@ -11,6 +11,12 @@ import { useCouponStore } from '../store/coupons';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
 
+const isPlaceholderKey = (key?: string) => {
+  if (!key) return true;
+  const k = key.trim().toLowerCase();
+  return k.includes('placeholder') || k.endsWith('zzzzzzzzzzzzzzzzzzzz') || k === '';
+};
+
 /**
  * CheckoutContent Component.
  * Implements step-by-step wizard forms (Shipping information, Review, Payment integration, Order complete screen).
@@ -545,6 +551,11 @@ const CheckoutContent: React.FC = () => {
 
                 {paymentMethod === 'card' && (
                   <div className="glass" style={{ padding: '20px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', marginTop: '8px' }}>
+                    {isPlaceholderKey(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY) && (
+                      <div className="alert alert-warning" style={{ marginBottom: '16px', padding: '12px 16px', borderRadius: '6px', backgroundColor: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.2)', color: '#f59e0b', fontSize: '13px', textAlign: 'left', lineHeight: '1.5' }}>
+                        <strong>Note:</strong> A dummy or placeholder Stripe Publishable Key is configured. Stripe Elements wallet-config will fail with a 401 error, and payment confirmation may fail. Please check your environment configuration.
+                      </div>
+                    )}
                     <label style={{ display: 'block', marginBottom: '12px', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>
                       Card Details
                     </label>
