@@ -1,6 +1,6 @@
 #!/bin/sh
 
-DB_FILE="/app/prisma/dev.db"
+DB_FILE="/app/data/dev.db"
 
 if [ ! -f "$DB_FILE" ]; then
   echo "Database file not found at $DB_FILE. Initializing and seeding..."
