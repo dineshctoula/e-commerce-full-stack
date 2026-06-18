@@ -23,6 +23,7 @@ RUN npm run build
 # Stage 2: Production runtime stage
 FROM node:20-slim
 WORKDIR /app
+RUN mkdir -p /app/data
 
 # Copy built application and client generator artifacts
 COPY --from=builder /app/dist ./dist
