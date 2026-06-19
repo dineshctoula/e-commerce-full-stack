@@ -85,7 +85,11 @@ const products = [
 async function main() {
   console.log('Start seeding...');
 
-  // Clear existing products to ensure clean re-seeding
+  // Clear existing reviews, orders, order items, coupons, and products to ensure clean re-seeding
+  await prisma.review.deleteMany({});
+  await prisma.orderItem.deleteMany({});
+  await prisma.order.deleteMany({});
+  await prisma.coupon.deleteMany({});
   await prisma.product.deleteMany({});
 
   for (const p of products) {
