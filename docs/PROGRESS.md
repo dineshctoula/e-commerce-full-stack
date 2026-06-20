@@ -644,3 +644,101 @@ Implemented tokenized search-relevance ranking, collaborative/category-based pro
 * Applied Helmet middleware and registered global `ThrottlerGuard` rate limiter.
 * File: `frontend/src/App.tsx`
 * Wrapped routing pages in lazy-suspense boundaries.
+
+---
+
+## Day 16 — Containerization & Multi-Service Orchestration
+
+Containerized the entire monorepo environment for unified, reliable deployment using Docker and Docker Compose.
+
+### Key Architecture Decisions
+1. **Multi-Stage Frontend Build**:
+   - Built frontend using a two-stage Dockerfile: the first stage builds the static assets using Node.js, and the second stage hosts them using a highly optimized Nginx server, serving content securely on port 80.
+2. **Standardized Backend Docker Environment**:
+   - Configured NestJS inside a Node-slim image with proper dependency installation and entrypoint orchestration.
+3. **Volume Persistent SQLite Storage**:
+   - Structured persistent directory volumes (`/app/data`) for the SQLite DB to prevent container updates or restarts from wiping the database state.
+
+### Detailed Implementation Steps
+
+#### 1. Frontend Dockerization (`frontend/Dockerfile` & `frontend/nginx.conf`)
+* Configured `nginx.conf` routing all HTML5 request paths back to `index.html` (supporting React SPA client routing).
+* Excluded local node modules and build assets via `.dockerignore`.
+
+#### 2. Backend Dockerization (`backend/Dockerfile` & `backend/start.sh`)
+* Created custom `start.sh` entrypoint executing Prisma migrations, building distribution bundles, and starting the NestJS application server.
+
+#### 3. Orchestration (`docker-compose.yml`)
+* Coordinated services (`backend` on `3000` and `frontend` on `5173`) with volume mappings for `/app/data` to persist databases.
+
+---
+
+## Day 17 — PDF Invoice Generation & Brand Refinement
+
+Refactored the application's overall branding and implemented clean, client-side PDF invoice generation.
+
+### Key Architecture Decisions
+1. **Rebranding to Hamro Pasal**:
+   - Updated the entire visual layout, logos, navigation, and PDF headers to showcase the new brand name **Hamro Pasal** (Nepali for "Our Shop").
+2. **Client-Side PDF Compilation**:
+   - Used `jsPDF` to compile order invoice details into PDF format directly in the user's browser, eliminating rendering overhead on the backend.
+
+### Detailed Implementation Steps
+
+#### 1. Brand Updates (`frontend/src/`)
+* Modified application title, primary headers, checkout layout, and invoices to reflect **Hamro Pasal**.
+
+#### 2. PDF Helper Utility (`frontend/src/utils/pdfGenerator.ts`)
+* Created `generateInvoicePDF()` using `jsPDF` to draw purchase summaries, metadata, and invoice items in a table layout.
+
+#### 3. UI Download Actions (`frontend/src/`)
+* Embedded download options in Checkout Success cards, Order History dashboard items, and Admin order manager list details.
+
+---
+
+## Day 18 — Sandbox Payment Gateways Integration (eSewa & IME Pay)
+
+Integrated multiple Sandbox payment gateways, specifically targeting localized Nepali gateways **eSewa** and **IME Pay**, alongside pre-existing Stripe capabilities.
+
+### Key Architecture Decisions
+1. **Expanded Database Schema**:
+   - Extended the `Order` model with `paymentMethod` and `paymentId` fields to capture and track specific checkout payments.
+2. **Sandbox Payment Controllers**:
+   - Built eSewa and IME Pay verification endpoints on the NestJS backend, executing cryptographic signature validations to confirm transaction authenticity.
+3. **Redirect Flow Coordination**:
+   - Structured frontend redirect hooks to send users to sandbox checkouts and capture response parameters on return pages.
+
+### Detailed Implementation Steps
+
+#### 1. Prisma Migrations (`backend/prisma/`)
+* Schema: `schema.prisma` - Added payment trackers. Executed migration `add_payment_fields`.
+
+#### 2. Backend Gateways (`backend/src/payment/`)
+* Implemented eSewa and IME Pay verification logic (cryptographic verification, checksum calculations, and payload processing).
+
+#### 3. Frontend Payments Store (`frontend/src/store/orders.ts`)
+* Configured checkout handlers to dispatch sandbox payloads and parse gateway returns for order state transition.
+
+---
+
+## Day 19 — Database Seeding, Volume Shadowing, and Production Tuning
+
+Performed stability updates, resolving database volume shadowing conflicts in Docker, handling seeding runtime issues, and implementing fail-safe transaction logging.
+
+### Key Architecture Decisions
+1. **SQLite Path Realignment**:
+   - Resolved SQLite volume shadowing by moving the database file to `/app/data/dev.db` on both host and containers, ensuring all database mutations persist during docker rebuilds.
+2. **Prisma Seed Cleanups**:
+   - Updated database seeding logic to delete dependent records in a sequence that prevents foreign key constraints from blocking migrations.
+3. **Production Entrypoint Tuning**:
+   - Enabled `FORCE_SEED` environment variables in `start.sh` to selectively allow seeding during staging deployments.
+
+### Detailed Implementation Steps
+
+#### 1. Configuration Realignment (`backend/start.sh`, `backend/Dockerfile`)
+* Updated environment database URLs to point strictly to the persistent `/app/data/` volume.
+* Ensured startup directory creation scripts operate before NestJS bootstrapping.
+
+#### 2. Transaction Exception Safety (`backend/src/order/order.service.ts`)
+* Wrapped transactional blocks inside try-catch logging segments to debug database queries in real time.
+
