@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hamro Pasal - Project Documentation</title>
+  <style>
+    /* CSS Styles for Web & Print */
+    :root {
+      --primary: #1e293b;
+      --secondary: #2563eb;
+      --text: #0f172a;
+      --bg: #ffffff;
+      --light-bg: #f8fafc;
+      --border: #e2e8f0;
+      --code-bg: #f1f5f9;
+      --accent: #3b82f6;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: var(--text);
+      background-color: var(--bg);
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    /* Cover Page */
+    .cover {
+      height: 90vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      border-bottom: 2px solid var(--border);
+      page-break-after: always;
+    }
+
+    .cover h1 {
+      font-size: 3.5rem;
+      margin-bottom: 10px;
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    .cover .nepali-title {
+      font-size: 2rem;
+      color: var(--secondary);
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+
+    .cover .subtitle {
+      font-size: 1.5rem;
+      color: #64748b;
+      margin-bottom: 40px;
+    }
+
+    .cover .meta {
+      font-size: 1rem;
+      color: #94a3b8;
+      margin-top: 50px;
+      line-height: 2;
+    }
+
+    /* Headings */
+    h1, h2, h3, h4 {
+      color: var(--primary);
+      font-weight: 700;
+      page-break-inside: avoid;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      border-bottom: 2px solid var(--secondary);
+      padding-bottom: 8px;
+      margin-top: 40px;
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      margin-top: 30px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      margin-top: 20px;
+    }
+
+    p, li {
+      font-size: 1.05rem;
+    }
+
+    /* Code Blocks */
+    pre {
+      background-color: var(--code-bg);
+      border-left: 4px solid var(--accent);
+      padding: 15px;
+      overflow-x: auto;
+      font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
+      font-size: 0.95rem;
+      border-radius: 4px;
+      margin: 20px 0;
+      page-break-inside: avoid;
+    }
+
+    code {
+      font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
+      background-color: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.95rem;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      page-break-inside: avoid;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--light-bg);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #fbfbfb;
+    }
+
+    /* Alerts */
+    .alert {
+      background-color: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 20px 0;
+      page-break-inside: avoid;
+    }
+
+    .alert-title {
+      font-weight: bold;
+      color: #1e3a8a;
+      margin-bottom: 5px;
+    }
+
+    /* Page breaks and Print styling */
+    .page-break {
+      page-break-before: always;
+    }
+
+    @media print {
+      body {
+        font-size: 11pt;
+        color: #000;
+      }
+      .container {
+        padding: 0;
+        max-width: 100%;
+      }
+      .cover {
+        height: 100%;
+        padding-top: 150px;
+        page-break-after: always;
+      }
+      a {
+        text-decoration: none;
+        color: #000;
+      }
+      pre, code {
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+      }
+      th {
+        background-color: #eaeaea !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    
+    <!-- Cover Page -->
+    <div class="cover">
+      <h1>Hamro Pasal</h1>
+      <div class="nepali-title">हाम्रो पसल</div>
+      <div class="subtitle">Full-Stack E-Commerce Platform</div>
+      <p style="font-size: 1.25rem; font-style: italic; color: #475569;">Project Architecture, Design &amp; Development Chronicles</p>
+      <div class="meta">
+        <strong>Timeline:</strong> Day 1 to Day 19 Summary<br>
+        <strong>Completion Date:</strong> June 20, 2026<br>
+        <strong>Authors:</strong> दिनेश (Dinesh) &amp; Antigravity (AI Partner)<br>
+        <strong>Version:</strong> 1.0.0 (Production Release)
+      </div>
+    </div>
+
+    <!-- Table of Contents -->
+    <div class="page-break">
+      <h2>Table of Contents</h2>
+      <ul style="line-height: 2; font-size: 1.1rem; list-style-type: square; padding-left: 20px;">
+        <li><a href="#overview">1. Executive Summary &amp; Overview</a></li>
+        <li><a href="#tech-stack">2. Technical Stack &amp; Architecture</a></li>
+        <li><a href="#timeline">3. Daily Development Log (Day 1 - Day 19)</a></li>
+        <li><a href="#database-schema">4. Database Schema Structure</a></li>
+        <li><a href="#payment-gateways">5. Payment Gateways Sandbox Integrations</a></li>
+        <li><a href="#deployment">6. Deployment &amp; Run Instructions</a></li>
+        <li><a href="#conclusion">7. Project Summary &amp; Wrap-Up</a></li>
+      </ul>
+    </div>
+
+    <!-- Executive Summary -->
+    <div class="page-break" id="overview">
+      <h1>1. Executive Summary &amp; Overview</h1>
+      <p>
+        <strong>Hamro Pasal</strong> (Nepali for "Our Shop") is a high-performance, full-stack e-commerce application designed to provide a secure, fast, and feature-rich shopping experience. The project was built from scratch, transitioning from a basic monorepo setup to a multi-container Dockerized production environment.
+      </p>
+      <p>
+        Key features include a secure double-token (Access + Refresh) authentication system, dynamic filtering on the product catalog, a persistent shopping cart and wishlist, coupon promo codes, authenticated user ratings/reviews, dynamic collaborative-category recommendations, administrative dashboards, local invoice PDF rendering, and multiple payment gateway integrations (Stripe, eSewa, and IME Pay).
+      </p>
+    </div>
+
+    <!-- Tech Stack -->
+    <div id="tech-stack">
+      <h1>2. Technical Stack &amp; Architecture</h1>
+      <p>
+        The application is architected as a monorepo consisting of:
+      </p>
+      <ul>
+        <li>
+          <strong>Backend:</strong> Built using <strong>NestJS</strong> (TypeScript), structured into clean, modular features. It relies on Passport and JWT for authentication, Helmet for security headers, rate-limiting guards, and Prisma ORM to interact with the database.
+        </li>
+        <li>
+          <strong>Frontend:</strong> React single-page application (SPA) bundled with <strong>Vite</strong>. State management is handled with <strong>Zustand</strong> (with localStorage persistence for the cart/wishlist), styled with modular vanilla CSS (supporting Dark/Light mode theme configurations), and lazy-loaded routing.
+        </li>
+        <li>
+          <strong>Database:</strong> <strong>SQLite</strong> connected via <strong>Prisma ORM</strong>. During database transactions, atomic locks are used to preserve consistency.
+        </li>
+        <li>
+          <strong>DevOps &amp; Infrastructure:</strong> Dockerized with two isolated services (Backend NestJS server and Frontend static Nginx container) orchestrated through <strong>Docker Compose</strong>.
+        </li>
+      </ul>
+    </div>
+
+    <!-- Timeline -->
+    <div class="page-break" id="timeline">
+      <h1>3. Daily Development Log (Day 1 - Day 19)</h1>
+
+      <h2>Day 1 — Setup and Architecture</h2>
+      <ul>
+        <li>Configured monorepo scaffolding with `backend/` and `frontend/` directories.</li>
+        <li>Initialized SQLite database with Prisma ORM and configured mock `PrismaService` for zero-setup local testing.</li>
+        <li>Verified React-Vite local environment and smoke-tested build compilation.</li>
+      </ul>
+
+      <h2>Day 2 — Authentication &amp; User Management (Backend)</h2>
+      <ul>
+        <li>Implemented Access Token (15 min) and Refresh Token (7 days) authentication flow.</li>
+        <li>Stored JWTs in secure HttpOnly cookies, mitigating XSS and CSRF.</li>
+        <li>Created `@Roles(...)` decorators and guards for Role-Based Access Control (RBAC).</li>
+      </ul>
+
+      <h2>Day 3 — Authentication &amp; User Management (Frontend)</h2>
+      <ul>
+        <li>Created Zustand authentication store (`store/auth.ts`) synchronizing with cookie sessions.</li>
+        <li>Developed `ProtectedRoute` and `AdminRoute` wrappers in React Router DOM.</li>
+        <li>Designed a responsive glassmorphic Dark/Light mode theme switcher.</li>
+      </ul>
+
+      <h2>Day 4 — Product Catalog API</h2>
+      <ul>
+        <li>Developed NestJS endpoints for product catalog management (`GET /products` public, mutation endpoints admin-only).</li>
+        <li>Integrated category filtering, search, and pagination.</li>
+        <li>Configured database seed with 8 initial premium items.</li>
+      </ul>
+
+      <h2>Day 5 — Product Catalog UI</h2>
+      <ul>
+        <li>Created shop search, filtering sidebar, and paginated product lists.</li>
+        <li>Designed product details view page (`/products/:id`) with layout grid and dynamic indicators.</li>
+      </ul>
+
+      <h2>Day 6 — Cart &amp; Wishlist</h2>
+      <ul>
+        <li>Created persistent Zustand cart store with automatic stock limit clamping.</li>
+        <li>Designed slide-out Cart Drawer and overlay Wishlist Modal accessible globally.</li>
+      </ul>
+
+      <h2>Day 7 — Orders API</h2>
+      <ul>
+        <li>Created transactional order endpoint (`POST /orders`) utilizing Prisma `$transaction`.</li>
+        <li>Enforced backend price calculation and snapshotting to prevent client tampering.</li>
+      </ul>
+
+      <h2>Day 8 — Checkout Flow</h2>
+      <ul>
+        <li>Added shipping fields validation to the `Order` schema and migrated the database.</li>
+        <li>Designed multi-step checkout form wizard and custom order history dashboards on user profiles.</li>
+      </ul>
+
+      <h2>Day 9 — Stripe Payments</h2>
+      <ul>
+        <li>Integrated Stripe SDK (backend) and Stripe Elements Card inputs (frontend).</li>
+        <li>Created Double Confirmation payment loop to transition order statuses securely to `PROCESSING`.</li>
+      </ul>
+
+      <h2>Day 10 — Admin Dashboard</h2>
+      <ul>
+        <li>Created admin statistics API aggregating sales metrics, inventories, and category distributions.</li>
+        <li>Designed Admin tab panels for viewing metrics, transitioning order statuses, and managing products (CRUD).</li>
+      </ul>
+
+      <h2>Day 11 — Code Documentation</h2>
+      <ul>
+        <li>Documented backend and frontend repositories with comprehensive JSDoc class and method details.</li>
+      </ul>
+
+      <h2>Day 12 — Ratings &amp; Reviews System</h2>
+      <ul>
+        <li>Added `Review` model to SQLite schema.</li>
+        <li>Implemented purchase validation logic, restricting write permissions to verified purchasers only.</li>
+        <li>Created dynamic star review selectors and aggregation counters.</li>
+      </ul>
+
+      <h2>Day 13 &amp; 14 — Promo Coupon System</h2>
+      <ul>
+        <li>Defined `Coupon` model, implementing backend validation routines (date checks, minimum spend limits).</li>
+        <li>Integrated coupon discounts into order transactions and built admin management UI.</li>
+      </ul>
+
+      <h2>Day 15 — Search Relevance, Recommendations, Security &amp; Performance</h2>
+      <ul>
+        <li>Developed tokenized relevance-scoring catalog search (matching title weight &gt; descriptions).</li>
+        <li>Built category-collaborative product recommendations panel on product details.</li>
+        <li>Integrated Helmet headers, rate-limiting guards, and React Route lazy loading.</li>
+      </ul>
+
+      <h2>Day 16 — Containerization &amp; Deployment Orchestration</h2>
+      <ul>
+        <li>Created Backend Dockerfile and Nginx-powered Frontend Dockerfile.</li>
+        <li>Configured `docker-compose.yml` to orchestrate service links and mount database files to volume directories.</li>
+      </ul>
+
+      <h2>Day 17 — PDF Invoice Generation</h2>
+      <ul>
+        <li>Integrated client-side `jsPDF` tool, allowing users to compile and download stylized order invoice PDFs.</li>
+        <li>Rebranded application to <strong>Hamro Pasal</strong>.</li>
+      </ul>
+
+      <h2>Day 18 — Sandbox Payment Gateways Integration (eSewa &amp; IME Pay)</h2>
+      <ul>
+        <li>Integrated localized Sandbox payment gateways **eSewa** and **IME Pay** with payment validation and callbacks.</li>
+      </ul>
+
+      <h2>Day 19 — SQLite Volume Shadowing &amp; Startup Tuning</h2>
+      <ul>
+        <li>Resolved SQLite database volume shadowing in Docker and implemented database transaction exception logs.</li>
+      </ul>
+    </div>
+
+    <!-- Database Schema -->
+    <div class="page-break" id="database-schema">
+      <h1>4. Database Schema Structure</h1>
+      <p>
+        The prisma schema details models representing the core components of Hamro Pasal:
+      </p>
+      <pre><code>model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("USER")
+  hashedRt  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+  reviews   Review[]
+}
+
+model Product {
+  id          String      @id @default(uuid())
+  title       String
+  description String
+  price       Float
+  image       String
+  category    String
+  stock       Int
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  orderItems  OrderItem[]
+  reviews     Review[]
+}
+
+model Order {
+  id                 String      @id @default(uuid())
+  userId             String
+  status             String      @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+  totalAmount        Float
+  discountAmount     Float       @default(0)
+  couponId           String?
+  paymentMethod      String      @default("STRIPE") // STRIPE, ESEWA, IME_PAY
+  paymentId          String?
+  shippingAddress    String
+  shippingCity       String
+  shippingPostalCode String
+  shippingCountry    String
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coupon             Coupon?     @relation(fields: [couponId], references: [id])
+  items              OrderItem[]
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float    // Historical price snapshot
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int
+  comment   String
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Coupon {
+  id             String      @id @default(uuid())
+  code           String      @unique
+  discountType   String      // PERCENTAGE, FIXED
+  value          Float
+  minOrderAmount Float       @default(0)
+  maxUses        Int?
+  usedCount      Int         @default(0)
+  active         Boolean     @default(true)
+  expiresAt      DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  orders         Order[]
+}</code></pre>
+    </div>
+
+    <!-- Payments -->
+    <div class="page-break" id="payment-gateways">
+      <h1>5. Payment Gateways Sandbox Integrations</h1>
+      <p>
+        Hamro Pasal provides checkout support for three gateways.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Gateway</th>
+            <th>Type</th>
+            <th>Verification Process</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Stripe</strong></td>
+            <td>Global Cards</td>
+            <td>Stripe Elements client-side payment tokens, verified via Stripe API payment intents on the backend.</td>
+          </tr>
+          <tr>
+            <td><strong>eSewa</strong></td>
+            <td>Nepali Wallet</td>
+            <td>Client is redirected to the eSewa Sandbox. On success, the backend processes callbacks and validates transaction details cryptographically.</td>
+          </tr>
+          <tr>
+            <td><strong>IME Pay</strong></td>
+            <td>Nepali Wallet</td>
+            <td>Client is redirected to IME Pay portal, and on return, payment verification queries are dispatched to confirm success status.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Run Instructions -->
+    <div class="page-break" id="deployment">
+      <h1>6. Deployment &amp; Run Instructions</h1>
+      
+      <h3>Running via Docker Compose (Recommended)</h3>
+      <p>
+        Deploy the entire environment with a single command:
+      </p>
+      <pre><code># Start all services and run database migrations/seeding automatically
+docker compose up --build -d</code></pre>
+      
+      <h3>Checking Log Output</h3>
+      <pre><code># Check Docker Compose logs
+docker compose logs -f</code></pre>
+
+      <h3>Running Locally (Development Mode)</h3>
+      <p>
+        To run services independently:
+      </p>
+      <pre><code># 1. Start SQLite database and migrations in backend/
+cd backend
+npm install
+npx prisma migrate dev
+npm run start:dev
+
+# 2. Run React development server in frontend/
+cd ../frontend
+npm install
+npm run dev</code></pre>
+    </div>
+
+    <!-- Conclusion -->
+    <div class="page-break" id="conclusion">
+      <h1>7. Project Summary &amp; Wrap-Up</h1>
+      <p>
+        The development of <strong>Hamro Pasal</strong> represents a complete full-stack engineering lifecycle:
+      </p>
+      <ul>
+        <li><strong>Day 1-5:</strong> Foundation setup, user security authentication structure, and catalog interfaces.</li>
+        <li><strong>Day 6-10:</strong> Core operations including Cart/Wishlist overlays, database orders, checkout logic, Stripe, and admin consoles.</li>
+        <li><strong>Day 11-15:</strong> Advanced features including system reviews, discount coupons, search ranking, recommendations, and rate limit protections.</li>
+        <li><strong>Day 16-19:</strong> Robust deployment prep containing containerization, persistent volume layouts, client invoice downloads, localized sandbox payment gateways, and start scripts.</li>
+      </ul>
+      <p>
+        All unit test suites compile and pass successfully, confirming business logic verification. The project has been fully finalized and is ready for production scaling.
+      </p>
+    </div>
+
+  </div>
+</body>
+</html>
