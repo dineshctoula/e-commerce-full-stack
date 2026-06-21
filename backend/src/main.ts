@@ -26,13 +26,21 @@ async function bootstrap() {
   // Register cookie-parser to extract cookies for HttpOnly token validation
   app.use(cookieParser());
 
+  const allowedOrigins = [
+    process.env.FRONTEND_URL,
+  ].filter(Boolean);
+
   app.enableCors({
     origin: (
       origin: string | undefined,
       callback: (err: Error | null, allow?: boolean) => void,
     ) => {
-      // Allow requests with no origin (like mobile apps, curl, or postman) or any localhost port
-      if (!origin || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
+      // Allow requests with no origin (like mobile apps, curl, or postman) or any localhost port, or allowed origins
+      if (
+        !origin ||
+        /^http:\/\/localhost(:\d+)?$/.test(origin) ||
+        allowedOrigins.includes(origin)
+      ) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
